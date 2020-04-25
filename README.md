@@ -1,5 +1,11 @@
 [![NuGet](https://img.shields.io/nuget/v/YellowCounter.FileSystemState.svg)](https://www.nuget.org/packages/YellowCounter.FileSystemState/)
 
+# FORKED - Work in progress
+This is not a fully tested version yet.
+I'm working on reducing the memory usage when monitoring large folders (recursive)
+Added Rename detection.
+
+
 # YellowCounter.FileSystemState
 Like FileSystemWatcher except you control when the state is checked. This allows it to work well for scheduled tasks instead of relying on continuous jobs.
 
