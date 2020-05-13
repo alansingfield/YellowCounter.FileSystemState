@@ -13,7 +13,6 @@ namespace YellowCounter.FileSystemState
     {
         private readonly string filter;
         private IAcceptFileSystemEntry acceptFileSystemEntry;
-        //private string currentDirectory;
 
         private static bool ignoreCase;
 
@@ -40,13 +39,6 @@ namespace YellowCounter.FileSystemState
             while(MoveNext()) { }
         }
 
-        protected override void OnDirectoryFinished(ReadOnlySpan<char> directory)
-        {
-            //currentDirectory = null;
-
-            base.OnDirectoryFinished(directory);
-        }
-
         protected override object TransformEntry(ref FileSystemEntry entry)
         {
             acceptFileSystemEntry.Accept(ref entry);
@@ -56,9 +48,6 @@ namespace YellowCounter.FileSystemState
 
         protected override bool ShouldIncludeEntry(ref FileSystemEntry entry)
         {
-            //if(currentDirectory == null)
-            //    currentDirectory = entry.Directory.ToString();
-
             if(entry.IsDirectory)
                 return false;
 
