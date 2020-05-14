@@ -73,10 +73,15 @@ namespace PathReduxTests.PathRedux
 
             buf.Store("1,Hello");
 
-            Should.Throw(() =>
-            {
-                buf.Store("1,World");
-            }, typeof(Exception)).Message.ShouldBe("Too many hash collisions. Increase LinearSearchLimit to overcome.");
+            buf.Store("1,World");
+
+            buf.HashCapacity.ShouldBe(32);
+            buf.LinearSearchLimit.ShouldBe(2);
+
+            //Should.Throw(() =>
+            //{
+            //    buf.Store("1,World");
+            //}, typeof(Exception)).Message.ShouldBe("Too many hash collisions. Increase LinearSearchLimit to overcome.");
         }
 
         [TestMethod]

@@ -19,10 +19,9 @@ namespace YellowCounter.FileSystemState.PathRedux
             chainedLookup = new HashBucket(options.InitialHashCapacity, options.LinearSearchLimit);
 
             this.newHashCode = options.NewHashCode;
-            this.linearSearchLimit = options.LinearSearchLimit;
         }
 
-        public int LinearSearchLimit => this.linearSearchLimit;
+        public int LinearSearchLimit => chainedLookup.MaxChain;
         public int CharCapacity => charBuffer.Capacity;
         public int HashCapacity => chainedLookup.Capacity;
 
@@ -49,6 +48,8 @@ namespace YellowCounter.FileSystemState.PathRedux
                 charBuffer.Resize(newSize);
 
                 pos = charBuffer.Store(text);
+
+                // this would be a maths error in not calculating the new length properly.
                 if(pos == -1)
                     throw new Exception("Resizing charBuffer didn't give us enough space");
             }
@@ -83,18 +84,38 @@ namespace YellowCounter.FileSystemState.PathRedux
         
         private void rebuildLookup()
         {
+            foreach(var chainFactor in new[] { 1, 2 })
+            {
+                // Doubling capacity will halve the number of moduloed hash collisions.
+                // If this still doesn't work, double the linear search chain length as well.
+                var replacement = rebuildInternal(
+                    this.chainedLookup.Capacity * 2, 
+                    this.chainedLookup.MaxChain * chainFactor);
+
+                if(replacement != null)
+                {
+                    this.chainedLookup = replacement;
+                    return;
+                }
+            }
+
+            throw new Exception("Too many hash collisions.");
+        }
+
+        private HashBucket rebuildInternal(int capacity, int chain)
+        {
             // Doubling capacity will halve the number of moduloed hash collisions
-            var newLookup = new HashBucket(chainedLookup.Capacity * 2, linearSearchLimit);
+            var newLookup = new HashBucket(capacity, chain);
 
             // Populate a new lookup from our existing data.
             foreach(var itm in charBuffer)
             {
+                // Too many hash collisions? Need to try new linear search limit?
                 if(!newLookup.Store(hashSequence(itm.Span), itm.Pos))
-                    throw new Exception($"Too many hash collisions. Increase {nameof(LinearSearchLimit)} to overcome.");
+                    return null;
             }
 
-            // Use the new lookup
-            chainedLookup = newLookup;
+            return newLookup;
         }
     }
 }

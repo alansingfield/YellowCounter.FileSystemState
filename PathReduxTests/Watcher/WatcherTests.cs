@@ -41,5 +41,18 @@ namespace PathReduxTests.Watcher
             Directory.CreateDirectory(path);
             return path;
         }
+
+
+        [TestMethod]
+        public void FileSystemWatcherBigDir()
+        {
+            string currentDir = @"C:\Users\SpanWork\Documents";
+
+            FileSystemState watcher = new FileSystemState(currentDir, options: new EnumerationOptions { RecurseSubdirectories = true });
+            watcher.LoadState();
+
+            var q = watcher.GetChanges();
+            q.Count.ShouldBe(0);
+        }
     }
 }
