@@ -100,7 +100,7 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         private void rebuildBuckets()
         {
-            var newBuckets = new HashBucket(buckets.Capacity * 2, buckets.MaxChain);
+            var newBuckets = new HashBucket(buckets.Capacity * 2, buckets.LinearSearchLimit);
 
             for(int idx = 0; idx < entries.Count; idx++)
             {

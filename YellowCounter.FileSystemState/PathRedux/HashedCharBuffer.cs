@@ -21,7 +21,7 @@ namespace YellowCounter.FileSystemState.PathRedux
             this.newHashCode = options.NewHashCode;
         }
 
-        public int LinearSearchLimit => chainedLookup.MaxChain;
+        public int LinearSearchLimit => chainedLookup.LinearSearchLimit;
         public int CharCapacity => charBuffer.Capacity;
         public int HashCapacity => chainedLookup.Capacity;
 
@@ -90,7 +90,7 @@ namespace YellowCounter.FileSystemState.PathRedux
                 // If this still doesn't work, double the linear search chain length as well.
                 var replacement = rebuildInternal(
                     this.chainedLookup.Capacity * 2, 
-                    this.chainedLookup.MaxChain * chainFactor);
+                    this.chainedLookup.LinearSearchLimit * chainFactor);
 
                 if(replacement != null)
                 {

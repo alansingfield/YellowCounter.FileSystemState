@@ -11,20 +11,23 @@ namespace YellowCounter.FileSystemState.PathRedux
     {
         private Memory<int> mem;
         private readonly int capacity;
-        private readonly int maxChain;
-        private BitArray usage;
+        private readonly int linearSearchLimit;
+        private BitArray elementsInUse;
+        private int usageCount;
 
-        public HashBucket(int capacity, int maxChain)
+        public HashBucket(int capacity, int linearSearchLimit)
         {
-            mem = new int[capacity + maxChain];
-            usage = new BitArray(capacity);
+            mem = new int[capacity + linearSearchLimit];
+            elementsInUse = new BitArray(capacity);
+            usageCount = 0;
 
             this.capacity = capacity;
-            this.maxChain = maxChain;
+            this.linearSearchLimit = linearSearchLimit;
         }
 
         public int Capacity => this.capacity;
-        public int MaxChain => this.maxChain;
+        public int LinearSearchLimit => this.linearSearchLimit;
+        public int UsageCount => this.usageCount;
 
         public bool Store(int hash, int value)
         {
@@ -32,17 +35,17 @@ namespace YellowCounter.FileSystemState.PathRedux
 
             var span = mem.Span;
 
-            for(int c = 0; c < maxChain; c++)
+            for(int c = 0; c < linearSearchLimit; c++)
             {
                 int i = bucket + c;
                 int j = i % capacity;
 
                 bool wrapAround = i != j;
 
-                if(!usage[j])
+                if(!elementsInUse[j])
                 {
                     span[j] = value;
-                    usage[j] = true;
+                    elementsInUse[j] = true;
 
                     // If wrapping around we have two copies of the values,
                     // one at the normal position and one in the runoff area
@@ -53,6 +56,8 @@ namespace YellowCounter.FileSystemState.PathRedux
                     {
                         span[i] = value;
                     }
+
+                    usageCount++;
 
                     return true;
                 }
@@ -78,11 +83,11 @@ namespace YellowCounter.FileSystemState.PathRedux
 
             int c = 0;
 
-            while(c < maxChain)
+            while(c < linearSearchLimit)
             {
                 int j = (bucket + c) % capacity;
 
-                if(!usage[j])
+                if(!elementsInUse[j])
                     break;
 
                 c++;
