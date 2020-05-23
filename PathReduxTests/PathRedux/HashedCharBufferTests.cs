@@ -75,13 +75,8 @@ namespace PathReduxTests.PathRedux
 
             buf.Store("1,World");
 
-            buf.HashCapacity.ShouldBe(32);
+            buf.HashCapacity.ShouldBe(8);
             buf.LinearSearchLimit.ShouldBe(2);
-
-            //Should.Throw(() =>
-            //{
-            //    buf.Store("1,World");
-            //}, typeof(Exception)).Message.ShouldBe("Too many hash collisions. Increase LinearSearchLimit to overcome.");
         }
 
         [TestMethod]
@@ -110,10 +105,8 @@ namespace PathReduxTests.PathRedux
             buf.Retrieve(0).ToString().ShouldBe("1,Hello");
             buf.Retrieve(8).ToString().ShouldBe("9,World");
 
-            // Hash capacity will have doubled to avoid clash of hashes
-            // 1 % 8 and 9 % 8
-            // Once we double, we get 16 hash buckets so clash avoided.
-            buf.HashCapacity.ShouldBe(16);
+            buf.HashCapacity.ShouldBe(4);
+            buf.LinearSearchLimit.ShouldBe(2);
         }
     }
 }

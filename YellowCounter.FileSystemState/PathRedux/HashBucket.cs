@@ -7,11 +7,17 @@ using System.Text;
 
 namespace YellowCounter.FileSystemState.PathRedux
 {
+    public class HashBucketOptions
+    {
+        public int Capacity { get; set; }
+        public int LinearSearchLimit { get; set; }
+    }
+
     /// <summary>
     /// A hash bucket using the Open Addressing scheme. This is a fixed capacity
     /// implementation.
     /// </summary>
-    public class HashBucket<T>
+    public partial class HashBucket<T>
     {
         private Memory<T> mem;
         private readonly int capacity;
@@ -19,6 +25,8 @@ namespace YellowCounter.FileSystemState.PathRedux
         private BitArray elementsInUse;
         private int usageCount;
         private int maxLinearSearch;
+
+        public HashBucket(HashBucketOptions options) : this(options.Capacity, options.LinearSearchLimit) { }
 
         public HashBucket(int capacity, int linearSearchLimit)
         {
@@ -55,7 +63,7 @@ namespace YellowCounter.FileSystemState.PathRedux
         /// <param name="hash"></param>
         /// <param name="value"></param>
         /// <returns>True if storing worked.</returns>
-        public bool Store(int hash, T value)
+        public bool TryStore(int hash, T value)
         {
             // Calculate which is the first slot we should try
             int baseSlot = slotFromHash(hash);
@@ -141,4 +149,5 @@ namespace YellowCounter.FileSystemState.PathRedux
         }
 
     }
+
 }

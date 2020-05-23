@@ -83,52 +83,69 @@ namespace YellowCounter.FileSystemState.PathRedux
                 textRef = buf.Store(arg.Slice(slashPos));
             }
 
-            int result = entries.Count;
+            int entryIdx = entries.Count;
             entries.Add(new Entry(textRef, parentIdx));
 
-            if(!buckets.Store(hash, result))
+            storeHashInLookup(hash, entryIdx);
+
+            return entryIdx;
+        }
+
+        private void storeHashInLookup(int hash, int entryIdx)
+        {
+            if(!buckets.TryStore(hash, entryIdx))
             {
-                // Rebuild buckets from List<Entry> twice as big
                 rebuildBuckets();
-
-                if(!buckets.Store(hash, result))
-                    throw new Exception($"Too many hash collisions in {nameof(PathStorage)}");
             }
-
-            return result;
         }
 
         private void rebuildBuckets()
         {
-            var newBuckets = new HashBucket<int>(buckets.Capacity * 2, buckets.LinearSearchLimit);
-
-            for(int idx = 0; idx < entries.Count; idx++)
+            foreach(var opts in buckets.SizeOptions(headroom: 1))
             {
-                var hashCode = newHashCode();
+                var replacement = new HashBucket<int>(opts);
 
-                foreach(var textRef in chain(idx).Reverse())
+                // Re-hash all our existing entries and try storing into the replacement 
+                // hashbucket.
+                for(int idx = 0; idx < entries.Count; idx++)
                 {
-                    var text = buf.Retrieve(textRef);
-                    foreach(var elem in text)
-                    {
-                        hashCode.Add(elem);
-                    }
+                    int hash = rehashEntry(idx);
+
+                    if(!replacement.TryStore(hash, idx))
+                        continue;   // Can't store in the replacement, try a different size
                 }
 
-                int hash = hashCode.ToHashCode();
-
-                newBuckets.Store(hash, idx);
+                // If we get to here, we've successfully rebuilt the buckets.
+                this.buckets = replacement;
+                return;
             }
 
-            this.buckets = newBuckets;
+            throw new Exception("Too many hash collisions.");
         }
 
-        public int HashEntry(int idx)
+        private int rehashEntry(int idx)
         {
-            var text = buf.Retrieve(chain(idx));
-            
-            return 0;
+            var hashCode = newHashCode();
+
+            foreach(var textRef in chain(idx).Reverse())
+            {
+                var text = buf.Retrieve(textRef);
+                foreach(var elem in text)
+                {
+                    hashCode.Add(elem);
+                }
+            }
+
+            int hash = hashCode.ToHashCode();
+            return hash;
         }
+
+        //public int HashEntry(int idx)
+        //{
+        //    var text = buf.Retrieve(chain(idx));
+            
+        //    return 0;
+        //}
 
         public string CreateString(int idx)
         {

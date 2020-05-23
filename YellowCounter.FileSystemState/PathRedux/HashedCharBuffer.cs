@@ -10,20 +10,20 @@ namespace YellowCounter.FileSystemState.PathRedux
     {
         private readonly int linearSearchLimit;
         private CharBuffer charBuffer;
-        private HashBucket<int> chainedLookup;
+        private HashBucket<int> hashLookup;
         private readonly Func<IHashCode> newHashCode;
 
         public HashedCharBuffer(HashedCharBufferOptions options)
         {
             charBuffer = new CharBuffer(options.InitialCharCapacity);
-            chainedLookup = new HashBucket<int>(options.InitialHashCapacity, options.LinearSearchLimit);
+            hashLookup = new HashBucket<int>(options.InitialHashCapacity, options.LinearSearchLimit);
 
             this.newHashCode = options.NewHashCode;
         }
 
-        public int LinearSearchLimit => chainedLookup.LinearSearchLimit;
+        public int LinearSearchLimit => hashLookup.LinearSearchLimit;
         public int CharCapacity => charBuffer.Capacity;
-        public int HashCapacity => chainedLookup.Capacity;
+        public int HashCapacity => hashLookup.Capacity;
 
         /// <summary>
         /// Returns index position
@@ -54,14 +54,12 @@ namespace YellowCounter.FileSystemState.PathRedux
                     throw new Exception("Resizing charBuffer didn't give us enough space");
             }
 
-            if(!chainedLookup.Store(hash, pos))
-            {
-                rebuildLookup();
-                chainedLookup.Store(hash, pos);
-            }
+            storeHashInLookup(hash, pos);
 
             return pos;
         }
+
+
 
         public ReadOnlySpan<char> Retrieve(int pos) => charBuffer.Retrieve(pos);
         public ReadOnlySequence<char> Retrieve(IEnumerable<int> indices) => charBuffer.Retrieve(indices);
@@ -76,47 +74,45 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         private int findByHash(int hash, ReadOnlySpan<char> text)
         {
-            var indices = chainedLookup.Retrieve(hash);
+            var indices = hashLookup.Retrieve(hash);
             return charBuffer.Match(text, indices);
         }
 
         private int hashSequence(ReadOnlySpan<char> text) => newHashCode().HashSequence(text);
-        
-        private void rebuildLookup()
+
+
+        private void storeHashInLookup(int hash, int pos)
         {
-
-            foreach(var chainFactor in new[] { 1, 2 })
+            if(!hashLookup.TryStore(hash, pos))
             {
-                // Doubling capacity will halve the number of moduloed hash collisions.
-                // If this still doesn't work, double the linear search chain length as well.
-                var replacement = rebuildInternal(
-                    this.chainedLookup.Capacity * 2, 
-                    this.chainedLookup.LinearSearchLimit * chainFactor);
-
-                if(replacement != null)
-                {
-                    this.chainedLookup = replacement;
-                    return;
-                }
+                rebuildLookup();
             }
-
-            throw new Exception("Too many hash collisions.");
         }
 
-        private HashBucket<int> rebuildInternal(int capacity, int chain)
+        private void rebuildLookup()
         {
-            // Doubling capacity will halve the number of moduloed hash collisions
-            var newLookup = new HashBucket<int>(capacity, chain);
-
-            // Populate a new lookup from our existing data.
-            foreach(var itm in charBuffer)
+            // Given the headroom we need, get a list of possible sizes to try for the lookup.
+            foreach(var opts in hashLookup.SizeOptions(headroom: 1))
             {
-                // Too many hash collisions? Need to try new linear search limit?
-                if(!newLookup.Store(hashSequence(itm.Span), itm.Pos))
-                    return null;
+                // Create a replacement hash bucket of the new size
+                var replacement = new HashBucket<int>(opts);
+
+                // Populate the replacement with our existing data
+                foreach(var itm in charBuffer)
+                {
+                    if(!replacement.TryStore(hashSequence(itm.Span), itm.Pos))
+                        continue;   // Can't store in the replacement, try a different size
+                }
+
+                // We've managed to store everything, REPLACE the old lookup with a new one.
+                this.hashLookup = replacement;
+                return;
             }
 
-            return newLookup;
+            // Theoretically this shouldn't happen, but...
+            // We've got a backstop which increases both the capacity and the linear search
+            // limit - what more could we do? Let's find out...
+            throw new Exception("Too many hash collisions.");
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using YellowCounter.FileSystemState.PathRedux;
 using Shouldly;
+using System.Linq;
 
 namespace YellowCounter.FileSystemState.Tests.PathRedux
 {
