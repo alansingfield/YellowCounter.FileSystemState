@@ -14,7 +14,7 @@ namespace PathReduxTests.PathRedux
         [TestMethod]
         public void HashBucketStoreRetrieve()
         {
-            var m = new HashBucket(2, 2);
+            var m = new HashBucket<int>(2, 2);
 
             m.Store(0, 123456).ShouldBe(true);
             m.Store(0, 765432).ShouldBe(true);
@@ -27,7 +27,7 @@ namespace PathReduxTests.PathRedux
         [TestMethod]
         public void HashBucketStoreFlowpast()
         {
-            var m = new HashBucket(2, 2);
+            var m = new HashBucket<int>(2, 2);
 
             m.Store(1, 123456).ShouldBe(true);
             m.Store(1, 765432).ShouldBe(true);
@@ -40,7 +40,7 @@ namespace PathReduxTests.PathRedux
         [TestMethod]
         public void HashBucketStoreZero()
         {
-            var m = new HashBucket(2, 2);
+            var m = new HashBucket<int>(2, 2);
 
             // It can store a zero
             m.Store(0, 0).ShouldBe(true);
@@ -52,7 +52,7 @@ namespace PathReduxTests.PathRedux
         [TestMethod]
         public void HashBucketChainLimit()
         {
-            var m = new HashBucket(8, 2);
+            var m = new HashBucket<int>(8, 2);
 
             m.Store(0, 100).ShouldBe(true);
             m.Store(0, 200).ShouldBe(true);
@@ -66,7 +66,7 @@ namespace PathReduxTests.PathRedux
         [TestMethod]
         public void HashBucketOverlap()
         {
-            var m = new HashBucket(8, 8);
+            var m = new HashBucket<int>(8, 8);
 
             // The values are going to overlap.
             m.Store(0, 100).ShouldBe(true);
@@ -81,7 +81,7 @@ namespace PathReduxTests.PathRedux
         [TestMethod]
         public void HashBucketOverlapLimited()
         {
-            var m = new HashBucket(8, 2);
+            var m = new HashBucket<int>(8, 2);
 
             // If we set the max chain to a lower value then the overlap
             // won't occur.
@@ -89,14 +89,36 @@ namespace PathReduxTests.PathRedux
             m.Store(1, 200).ShouldBe(true);
             m.Store(0, 300).ShouldBe(false);
 
-            m.Retrieve(0).ToArray().ShouldBe(new[] { 100, 200 });
+            m.MaxLinearSearch.ShouldBe(1);
+
+            // Because max linear search encountered is 1, we don't get
+            // the value 200 back on the first row.
+            m.Retrieve(0).ToArray().ShouldBe(new[] { 100 });
             m.Retrieve(1).ToArray().ShouldBe(new[] { 200 });
+        }
+
+        [TestMethod]
+        public void HashBucketOverlapLimited2()
+        {
+            var m = new HashBucket<int>(8, 2);
+
+            m.Store(0, 100).ShouldBe(true);
+            m.Store(1, 200).ShouldBe(true);
+
+            m.Store(2, 300).ShouldBe(true);
+            m.Store(2, 400).ShouldBe(true);
+
+            m.MaxLinearSearch.ShouldBe(2);
+
+            m.Retrieve(0).ToArray().ShouldBe(new[] { 100, 200 });
+            m.Retrieve(1).ToArray().ShouldBe(new[] { 200, 300 });
+            m.Retrieve(2).ToArray().ShouldBe(new[] { 300, 400 });
         }
 
         [TestMethod]
         public void HashBucketWraparound()
         {
-            var m = new HashBucket(4, 2);
+            var m = new HashBucket<int>(4, 2);
 
             m.Store(3, 100).ShouldBe(true);
             m.Store(3, 200).ShouldBe(true);
@@ -107,7 +129,7 @@ namespace PathReduxTests.PathRedux
         [TestMethod]
         public void HashBucketRebuild1()
         {
-            var m = new HashBucket(2, 2);
+            var m = new HashBucket<int>(2, 2);
 
             var data = new[]
             {

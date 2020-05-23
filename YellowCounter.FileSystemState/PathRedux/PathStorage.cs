@@ -23,7 +23,7 @@ namespace YellowCounter.FileSystemState.PathRedux
     public class PathStorage : IPathStorage
     {
         private HashedCharBuffer buf;
-        private HashBucket buckets;
+        private HashBucket<int> buckets;
         private List<Entry> entries;
         private const int Root = -1;    // The root entry's ParentIdx is set to this.
 
@@ -41,7 +41,7 @@ namespace YellowCounter.FileSystemState.PathRedux
                 LinearSearchLimit = options.LinearSearchLimit
             });
 
-            buckets = new HashBucket(
+            buckets = new HashBucket<int>(
                 options.HashBucketInitialCapacity, 
                 options.HashBucketMaxChain);
 
@@ -100,7 +100,7 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         private void rebuildBuckets()
         {
-            var newBuckets = new HashBucket(buckets.Capacity * 2, buckets.LinearSearchLimit);
+            var newBuckets = new HashBucket<int>(buckets.Capacity * 2, buckets.LinearSearchLimit);
 
             for(int idx = 0; idx < entries.Count; idx++)
             {

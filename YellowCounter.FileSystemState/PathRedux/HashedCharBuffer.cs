@@ -10,13 +10,13 @@ namespace YellowCounter.FileSystemState.PathRedux
     {
         private readonly int linearSearchLimit;
         private CharBuffer charBuffer;
-        private HashBucket chainedLookup;
+        private HashBucket<int> chainedLookup;
         private readonly Func<IHashCode> newHashCode;
 
         public HashedCharBuffer(HashedCharBufferOptions options)
         {
             charBuffer = new CharBuffer(options.InitialCharCapacity);
-            chainedLookup = new HashBucket(options.InitialHashCapacity, options.LinearSearchLimit);
+            chainedLookup = new HashBucket<int>(options.InitialHashCapacity, options.LinearSearchLimit);
 
             this.newHashCode = options.NewHashCode;
         }
@@ -84,6 +84,7 @@ namespace YellowCounter.FileSystemState.PathRedux
         
         private void rebuildLookup()
         {
+
             foreach(var chainFactor in new[] { 1, 2 })
             {
                 // Doubling capacity will halve the number of moduloed hash collisions.
@@ -102,10 +103,10 @@ namespace YellowCounter.FileSystemState.PathRedux
             throw new Exception("Too many hash collisions.");
         }
 
-        private HashBucket rebuildInternal(int capacity, int chain)
+        private HashBucket<int> rebuildInternal(int capacity, int chain)
         {
             // Doubling capacity will halve the number of moduloed hash collisions
-            var newLookup = new HashBucket(capacity, chain);
+            var newLookup = new HashBucket<int>(capacity, chain);
 
             // Populate a new lookup from our existing data.
             foreach(var itm in charBuffer)

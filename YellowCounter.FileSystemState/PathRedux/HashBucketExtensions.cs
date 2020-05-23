@@ -6,9 +6,13 @@ namespace YellowCounter.FileSystemState.PathRedux
 {
     public static class HashBucketExtensions
     {
-        public static HashBucket Rebuild(this HashBucket source, 
-            IEnumerable<(int hash, int value)> itemsEnumerator)
+        public static HashBucket<T> Rebuild<T>(this HashBucket<T> source, 
+            IEnumerable<(int hash, T value)> itemsEnumerator,
+            int headroom = 0)
         {
+            if(headroom < 0)
+                throw new ArgumentException($"Must be >= 0", nameof(headroom));
+
             var factors = new List<(double capacityFactor, double linearFactor)>();
 
             if(source.UsageCount < source.Capacity * 0.3)
@@ -49,9 +53,13 @@ namespace YellowCounter.FileSystemState.PathRedux
                 int newLinearSearchLimit = (int)(Math.Ceiling(source.LinearSearchLimit * linearFactor));
 
                 // Sanity limits
-                if(newCapacity < source.UsageCount)
-                    newCapacity = source.UsageCount + 1;
 
+                // Must have at least enough space for the current usage count and extra
+                // headroom requested.
+                if(newCapacity < source.UsageCount)
+                    newCapacity = source.UsageCount + headroom;
+
+                // Must linear search at least one item
                 if(newLinearSearchLimit < 1)
                     newLinearSearchLimit = 1;
 
@@ -65,18 +73,22 @@ namespace YellowCounter.FileSystemState.PathRedux
                     newCapacity,
                     newLinearSearchLimit);
 
+                // We will get null returned if it can't rebuild.
                 if(replacement != null)
                     return replacement;
             }
 
+            // Theoretically this shouldn't happen, but...
+            // We've got a backstop which increases both the capacity and the linear search
+            // limit - what more could we do? Let's find out...
             throw new Exception("Too many hash collisions.");
         }
 
-        private static HashBucket rebuildInternal(
-            IEnumerable<(int hash, int value)> itemsEnumerator,
+        private static HashBucket<T> rebuildInternal<T>(
+            IEnumerable<(int hash, T value)> itemsEnumerator,
             int capacity, int chain)
         {
-            var newLookup = new HashBucket(capacity, chain);
+            var newLookup = new HashBucket<T>(capacity, chain);
 
             // Populate a new lookup from our existing data.
             foreach(var (hash, value) in itemsEnumerator)
