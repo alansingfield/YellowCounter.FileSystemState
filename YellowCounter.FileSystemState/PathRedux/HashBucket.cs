@@ -17,13 +17,13 @@ namespace YellowCounter.FileSystemState.PathRedux
     /// A hash bucket using the Open Addressing scheme. This is a fixed capacity
     /// implementation.
     /// </summary>
-    public partial class HashBucket<T>
+    public class HashBucket<T>
     {
         private Memory<T> mem;
         private readonly int capacity;
         private readonly int linearSearchLimit;
         private BitArray elementsInUse;
-        private int usageCount;
+        private int occupancy;
         private int maxLinearSearch;
 
         public HashBucket(HashBucketOptions options) : this(options.Capacity, options.LinearSearchLimit) { }
@@ -32,7 +32,7 @@ namespace YellowCounter.FileSystemState.PathRedux
         {
             mem = new T[capacity + linearSearchLimit];
             elementsInUse = new BitArray(capacity);
-            usageCount = 0;
+            occupancy = 0;
 
             this.capacity = capacity;
             this.linearSearchLimit = linearSearchLimit;
@@ -49,12 +49,13 @@ namespace YellowCounter.FileSystemState.PathRedux
         /// <summary>
         /// Number of slots we are using at the moment
         /// </summary>
-        public int UsageCount => this.usageCount;
+        public int Occupancy => this.occupancy;
         /// <summary>
         /// Longest linear search we've had to do. Starts at zero with nothing
         /// stored. Maximum possible value will be same as LinearSearchLimit.
         /// </summary>
         public int MaxLinearSearch => this.maxLinearSearch;
+
 
         /// <summary>
         /// Stores value against the specified hash. DOES NOT RAISE AN EXCEPTION
@@ -63,53 +64,82 @@ namespace YellowCounter.FileSystemState.PathRedux
         /// <param name="hash"></param>
         /// <param name="value"></param>
         /// <returns>True if storing worked.</returns>
-        public bool TryStore(int hash, T value)
+        public virtual bool TryStore(int hash, T value)
         {
             // Calculate which is the first slot we should try
-            int baseSlot = slotFromHash(hash);
-
-            var span = mem.Span;
+            RSM rsm = new RSM(
+                slotFromHash(hash),
+                this.capacity, 
+                this.linearSearchLimit);
 
             // Starting at the first slot, search for a free slot to put our
-            // data into.
-            for(int pos = 0; pos < linearSearchLimit; pos++)
+            // data into. We might shoot past the end of capacity so
+            // using ModuloSlot loops around back to the start.
+            while(elementsInUse[rsm.ModuloSlot])
             {
-                // Calculate the slot we are going to try. We might shoot past the
-                // end of capacity so we need to wrap around back to the start.
-                int rawSlot = baseSlot + pos;
-                int moduloSlot = rawSlot % capacity;
+                // Inc() will return false if we have exceeded the search limit.
+                if(!rsm.Inc())
+                    return false;
+            }
+            
+            var span = mem.Span;
 
-                // Skip round until we find a free slot
-                if(elementsInUse[moduloSlot])
-                    continue;
+            // Write to the memory and our "in use" bit array.
+            span[rsm.ModuloSlot] = value;
+            elementsInUse[rsm.ModuloSlot] = true;
 
-                // Write to the memory and our "in use" bit array.
-                span[moduloSlot] = value;
-                elementsInUse[moduloSlot] = true;
-
-                // If wrapping around we have two copies of the values,
-                // one at the normal position and one in the runoff area
-                // at the end of the memory buffer.
-                // This so we have a contiguous span to slice for the
-                // return.
-                if(rawSlot != moduloSlot)
-                {
-                    span[rawSlot] = value;
-                }
-
-                // Keep track of our usage.
-                usageCount++;
-
-                // Keep track of the longest linear search we've had to do
-                // so far.
-                if(maxLinearSearch <= pos)
-                    maxLinearSearch = pos + 1;
-
-                return true;
+            // If wrapping around we have two copies of the values,
+            // one at the normal position and one in the runoff area
+            // at the end of the memory buffer.
+            // This so we have a contiguous span to slice for the
+            // return.
+            if(rsm.RawSlot != rsm.ModuloSlot)
+            {
+                span[rsm.RawSlot] = value;
             }
 
-            // Went past the linearSearchLimit, not enough slots to store
-            return false;
+            // Keep track of our usage.
+            occupancy++;
+
+            // Keep track of the longest linear search we've had to do
+            // so far.
+            if(maxLinearSearch <= rsm.Pos)
+                maxLinearSearch = rsm.Pos + 1;
+
+            return true;
+        }
+
+        private struct RSM
+        {
+            private readonly int capacity;
+            private readonly int scanLimit;
+
+            public RSM(int baseSlot, int capacity, int scanLimit)
+            {
+                this.capacity = capacity;
+                this.scanLimit = scanLimit;
+                this.RawSlot = baseSlot;
+                this.ModuloSlot = baseSlot;
+
+                this.Pos = 0;
+            }
+
+            public bool Inc()
+            {
+                Pos++;
+
+                RawSlot++;
+                ModuloSlot++;
+
+                if(ModuloSlot >= capacity)
+                    ModuloSlot %= capacity;
+
+                return Pos < scanLimit;
+            }
+
+            public int RawSlot { get; private set; }
+            public int ModuloSlot { get; private set; }
+            public int Pos { get; private set; }
         }
 
         /// <summary>
@@ -124,7 +154,7 @@ namespace YellowCounter.FileSystemState.PathRedux
         /// </summary>
         /// <param name="hash"></param>
         /// <returns></returns>
-        public ReadOnlySpan<T> Retrieve(int hash)
+        public virtual ReadOnlySpan<T> Retrieve(int hash)
         {
             // Calculate the first spot our result could be in
             int slot = slotFromHash(hash);
