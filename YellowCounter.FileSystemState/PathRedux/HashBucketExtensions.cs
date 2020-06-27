@@ -8,18 +8,20 @@ namespace YellowCounter.FileSystemState.PathRedux
     {
         public static IEnumerable<HashBucketOptions> SizeOptions<T>(this HashBucket<T> source, int headroom = 0)
         {
-            if(headroom < 0)
-                throw new ArgumentException($"Must be >= 0", nameof(headroom));
+            int requiredSize = source.Occupancy + headroom;
+
+            if(requiredSize < 0)
+                throw new ArgumentException($"Headroom change must not be less than current occupancy", nameof(headroom));
 
             var factors = new List<(double capacityFactor, double linearFactor)>();
 
-            if(source.Occupancy < source.Capacity * 0.3)
+            if(requiredSize < source.Capacity * 0.3)
             {
                 // Using less than 30% of capacity, increase linear search and reduce
                 // size.
                 factors.Add((0.5, 2));
             }
-            else if(source.Occupancy > source.Capacity * 0.7)
+            else if(requiredSize > source.Capacity * 0.7)
             {
                 // Increase size by root2 once we are using more than 70%
                 // Capacity times root2, linear search factor divided by root2
@@ -54,8 +56,8 @@ namespace YellowCounter.FileSystemState.PathRedux
 
                 // Must have at least enough space for the current usage count and extra
                 // headroom requested.
-                if(newCapacity < source.Occupancy + headroom)
-                    newCapacity = source.Occupancy + headroom;
+                if(newCapacity < requiredSize)
+                    newCapacity = requiredSize;
 
                 // Must linear search at least one item
                 if(newLinearSearchLimit < 1)
