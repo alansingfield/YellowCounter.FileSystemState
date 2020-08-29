@@ -171,7 +171,7 @@ namespace YellowCounter.FileSystemState.PathRedux
                 if(Position >= capacity)
                     Position %= capacity;
 
-                return Offset <= scanLimit;
+                return Offset < scanLimit;
             }
 
             public int Position { get; private set; }
@@ -263,7 +263,7 @@ namespace YellowCounter.FileSystemState.PathRedux
                 this.started = false;
 
                 this.rsm = new RSM(
-                    start - 1,  // Take account of first call to Inc() in MoveNext()
+                    start,
                     capacity,
                     scanLimit);
             }
@@ -281,8 +281,7 @@ namespace YellowCounter.FileSystemState.PathRedux
 
             public bool MoveNext()
             {
-                if(!started)
-                    started = true;
+
 
                 // Skip over unused elements and soft-deleted elements until we reach
                 // a position where the element at rsm.Position is "in use"
@@ -290,8 +289,13 @@ namespace YellowCounter.FileSystemState.PathRedux
 
                 do
                 {
-                    if(!rsm.Inc())
-                        return false;   // Exhausted the search, no more items, stop enumerating.
+                    if(!started)
+                        started = true;
+                    else
+                    {
+                        if(!rsm.Inc())
+                            return false;   // Exhausted the search, no more items, stop enumerating.
+                    }
                 }
                 while(!elementsInUse[rsm.Position] || softDeleted[rsm.Position]);
 
