@@ -156,11 +156,21 @@ namespace YellowCounter.FileSystemState.PathRedux
             DeleteAt(position);
         }
 
+        /// <summary>
+        /// This logic controls the cursor position for scanning through a wrap-around
+        /// array.
+        /// </summary>
         private struct RSM
         {
             private readonly int capacity;
             private readonly int scanLimit;
 
+            /// <summary>
+            /// Calculates a moduloed position within a wrap-around array
+            /// </summary>
+            /// <param name="startPosition">Start position in array, from 0..capacity-1</param>
+            /// <param name="capacity">Length of array</param>
+            /// <param name="scanLimit">Limit the number of iterations to avoid infinite loop</param>
             public RSM(int startPosition, int capacity, int scanLimit)
             {
                 this.capacity = capacity;
@@ -258,7 +268,6 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         public ref struct Enumerator
         {
-            private bool started;
             private RSM rsm;
 
             private readonly T[] mem;
@@ -276,8 +285,6 @@ namespace YellowCounter.FileSystemState.PathRedux
                 this.mem = mem;
                 this.elementsInUse = elementsInUse;
                 this.softDeleted = softDeleted;
-
-                this.started = false;
 
                 this.rsm = new RSM(
                     start,
