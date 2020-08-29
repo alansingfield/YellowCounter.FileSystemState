@@ -85,19 +85,26 @@ namespace YellowCounter.FileSystemState.PathRedux
                 this.capacity,
                 this.linearSearchLimit);
 
+            bool foundSlot = false;
+
             // Starting at the first slot, search for a free slot to put our
             // data into. We might shoot past the end of capacity so
-            // using ModuloSlot loops around back to the start.
-            while(elementsInUse[rsm.Position]
-                && !softDeleted[rsm.Position])
+            // using RSM loops around back to the start.
+            while(rsm.Inc())
             {
-                // Inc() will return false if we have exceeded the search limit.
-                if(!rsm.Inc())
+                if(!elementsInUse[rsm.Position] || softDeleted[rsm.Position])
                 {
-                    position = -1;
-                    return false;
+                    foundSlot = true;
+                    break;
                 }
             }
+
+            if(!foundSlot)
+            {
+                position = -1;
+                return false;
+            }
+
 
             // Write to the memory and our "in use" bit array.
             mem[rsm.Position] = value;
@@ -161,18 +168,28 @@ namespace YellowCounter.FileSystemState.PathRedux
                 this.Position = startPosition;
 
                 this.Offset = 0;
+                this.Started = false;
             }
 
             public bool Inc()
             {
-                Offset++;
-                Position++;
+                if(!Started)
+                {
+                    Started = true;
+                }
+                else
+                {
+                    Offset++;
+                    Position++;
+                }
 
                 if(Position >= capacity)
                     Position %= capacity;
 
                 return Offset < scanLimit;
             }
+
+            public bool Started { get; private set; }
 
             public int Position { get; private set; }
             public int Offset { get; private set; }
@@ -272,7 +289,7 @@ namespace YellowCounter.FileSystemState.PathRedux
             {
                 get
                 {
-                    if(!started)
+                    if(!rsm.Started)
                         throw new InvalidOperationException();
 
                     return ref mem[rsm.Position];
@@ -281,24 +298,24 @@ namespace YellowCounter.FileSystemState.PathRedux
 
             public bool MoveNext()
             {
+                bool foundSlot = false;
 
-
-                // Skip over unused elements and soft-deleted elements until we reach
-                // a position where the element at rsm.Position is "in use"
-                // and not "soft deleted".
-
-                do
+                while(rsm.Inc())
                 {
-                    if(!started)
-                        started = true;
-                    else
+                    // Skip over unused elements and soft-deleted elements until we reach
+                    // a position where the element at rsm.Position is "in use"
+                    // and not "soft deleted".
+                    if(elementsInUse[rsm.Position] && !softDeleted[rsm.Position])
                     {
-                        if(!rsm.Inc())
-                            return false;   // Exhausted the search, no more items, stop enumerating.
+                        foundSlot = true;
+                        break;
                     }
                 }
-                while(!elementsInUse[rsm.Position] || softDeleted[rsm.Position]);
 
+                // Exhausted the search, no more items, stop enumerating.
+                if(!foundSlot)
+                    return false;
+           
                 // rsm.Position will now point to an element which is available
                 // and not soft-deleted; this is picked up by Current.
 
