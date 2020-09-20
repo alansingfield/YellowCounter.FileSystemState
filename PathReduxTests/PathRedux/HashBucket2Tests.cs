@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnitTestCoder.Shouldly.Gen;
-using YellowCounter.FileSystemState.PathRedux;
+using YellowCounter.FileSystemState.HashedStorage;
 
 namespace PathReduxTests.PathRedux
 {
