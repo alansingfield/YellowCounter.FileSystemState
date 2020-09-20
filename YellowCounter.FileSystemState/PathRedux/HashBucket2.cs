@@ -27,10 +27,10 @@ namespace YellowCounter.FileSystemState.PathRedux
         private readonly int linearSearchLimit;
         private readonly BitArray elementsInUse;
         private readonly BitArray softDeleted;
+        private readonly int sizeofT;
         private int occupancy;
         private int usage;
         private int maxLinearSearch;
-        private int sizeofT;
 
         public HashBucket2(HashBucket2Options options) : this(options.Capacity, options.LinearSearchLimit) { }
 
@@ -71,16 +71,20 @@ namespace YellowCounter.FileSystemState.PathRedux
         public int MaxLinearSearch => this.maxLinearSearch;
 
         /// <summary>
-        /// Stores value against the specified hash. DOES NOT RAISE AN EXCEPTION
-        /// if it can't store the value. You must check the return value.
+        /// Stores value against the specified hash. Multiple values can be stored
+        /// against the same hash (it does not overwrite).
+        /// 
+        /// DOES NOT RAISE AN EXCEPTION if it can't store the value.
+        /// You must check the return value.
         /// </summary>
         /// <param name="hash"></param>
         /// <param name="value"></param>
+        /// <param name="index">Outputs position of where value was stored. Will be set to -1 if store fails.</param>
         /// <returns>True if storing worked.</returns>
-        public virtual bool TryStore(int hash, T value, out int position)
+        public virtual bool TryStore(int hash, T value, out int index)
         {
             // Calculate which is the first slot we should try
-            RSM rsm = new RSM(
+            var cursor = new Cursor(
                 slotFromHash(hash),
                 this.capacity,
                 this.linearSearchLimit);
@@ -89,10 +93,10 @@ namespace YellowCounter.FileSystemState.PathRedux
 
             // Starting at the first slot, search for a free slot to put our
             // data into. We might shoot past the end of capacity so
-            // using RSM loops around back to the start.
-            while(rsm.Inc())
+            // using the cursor loops around back to the start.
+            while(cursor.MoveNext())
             {
-                if(!elementsInUse[rsm.Position] || softDeleted[rsm.Position])
+                if(!elementsInUse[cursor.Index] || softDeleted[cursor.Index])
                 {
                     foundSlot = true;
                     break;
@@ -101,21 +105,20 @@ namespace YellowCounter.FileSystemState.PathRedux
 
             if(!foundSlot)
             {
-                position = -1;
+                index = -1;
                 return false;
             }
 
-
             // Write to the memory and our "in use" bit array.
-            mem[rsm.Position] = value;
-            elementsInUse[rsm.Position] = true;
+            mem[cursor.Index] = value;
+            elementsInUse[cursor.Index] = true;
 
             this.usage++;
 
             // Are we re-using an existing slot that was soft deleted?
-            if(softDeleted[rsm.Position])
+            if(softDeleted[cursor.Index])
             {
-                softDeleted[rsm.Position] = false;
+                softDeleted[cursor.Index] = false;
             }
             else
             {
@@ -125,11 +128,11 @@ namespace YellowCounter.FileSystemState.PathRedux
 
             // Keep track of the longest linear search we've had to do
             // so far.
-            if(maxLinearSearch <= rsm.Offset)
-                maxLinearSearch = rsm.Offset + 1;
+            if(maxLinearSearch <= cursor.MoveCount)
+                maxLinearSearch = cursor.MoveCount + 1;
 
             // Return the position we stored the item at.
-            position = rsm.Position;
+            index = cursor.Index;
             return true;
         }
 
@@ -139,6 +142,11 @@ namespace YellowCounter.FileSystemState.PathRedux
             if(position < 0 || position >= softDeleted.Length)
                 throw new IndexOutOfRangeException();
 
+            deleteAtInternal(position);
+        }
+
+        private void deleteAtInternal(int position)
+        {
             if(!softDeleted[position])
             {
                 softDeleted[position] = true;
@@ -148,61 +156,105 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         public void Delete(ref T item)
         {
-            // Calculate the array index of item within mem
-            int position = (int)Unsafe.ByteOffset(
-                ref this.mem[0], ref item) 
-                / this.sizeofT;
+            DeleteAt(PositionOf(ref item));
+        }
 
-            DeleteAt(position);
+        public int PositionOf(ref T item)
+        {
+            // Calculate the array index of item within mem
+            return (int)Unsafe.ByteOffset(
+                ref this.mem[0], ref item)
+                / this.sizeofT;
         }
 
         /// <summary>
         /// This logic controls the cursor position for scanning through a wrap-around
         /// array.
         /// </summary>
-        private struct RSM
+        private struct Cursor
         {
-            private readonly int capacity;
-            private readonly int scanLimit;
-
             /// <summary>
-            /// Calculates a moduloed position within a wrap-around array
+            /// Calculates a moduloed index within a wrap-around array
             /// </summary>
-            /// <param name="startPosition">Start position in array, from 0..capacity-1</param>
+            /// <param name="startIndex">Start index in array, from 0..capacity-1</param>
             /// <param name="capacity">Length of array</param>
-            /// <param name="scanLimit">Limit the number of iterations to avoid infinite loop</param>
-            public RSM(int startPosition, int capacity, int scanLimit)
+            /// <param name="moveLimit">Limit the number of iterations to avoid infinite loop</param>
+            public Cursor(int startIndex, int capacity, int moveLimit)
             {
-                this.capacity = capacity;
-                this.scanLimit = scanLimit;
-                this.Position = startPosition;
+                if(startIndex < 0 || startIndex >= capacity)
+                    throw new ArgumentException(
+                        $"{nameof(startIndex)} must be between 0 and ${nameof(capacity)}-1", 
+                        nameof(startIndex));
 
-                this.Offset = 0;
+                if(moveLimit < 0)
+                    throw new ArgumentException(
+                        $"{nameof(moveLimit)} must be >= 0", nameof(moveLimit));
+
+                if(capacity < 0)
+                    throw new ArgumentException(
+                        $"{nameof(capacity)} must be >= 0", nameof(capacity));
+
+                this.Capacity = capacity;
+                this.MoveLimit = moveLimit;
+
+                this.Index = startIndex;
+                this.MoveCount = 0;
                 this.Started = false;
+                this.Ended = false;
             }
 
-            public bool Inc()
+            /// <summary>
+            /// Advance the cursor. The first call sets Started to true. Subsequent calls increase
+            /// the Index and MoveCount fields. The Index field wraps around, the MoveCount does not.
+            /// When we make the (MoveLimit+1)st move, it will return False and the Ended flag is
+            /// set to true. Any further calls will always return false and leave the index where it is.
+            /// </summary>
+            /// <returns>True if we have not exceeded maximum number of iterations (MoveLimit)</returns>
+            public bool MoveNext()
             {
+                if(Ended)
+                    return false;
+
                 if(!Started)
                 {
                     Started = true;
                 }
                 else
                 {
-                    Offset++;
-                    Position++;
+                    MoveCount++;
+                    Index++;
                 }
 
-                if(Position >= capacity)
-                    Position %= capacity;
+                if(Index >= Capacity)
+                    Index %= Capacity;
 
-                return Offset < scanLimit;
+                var result = MoveCount < MoveLimit;
+
+                if(!result)
+                    Ended = true;
+
+                return result;
             }
 
+            /// <summary>
+            /// Have we moved the cursor yet? True after first call to MoveNext()
+            /// </summary>
             public bool Started { get; private set; }
+            /// <summary>
+            /// Have we reached the limit of the number of moves?
+            /// </summary>
+            public bool Ended { get; private set; }
 
-            public int Position { get; private set; }
-            public int Offset { get; private set; }
+            /// <summary>
+            /// Array index, will be in range 0..Capacity-1
+            /// </summary>
+            public int Index { get; private set; }
+
+            public int MoveCount { get; private set; }
+
+            public int Capacity { get; }
+
+            public int MoveLimit { get; }
         }
 
         /// <summary>
@@ -224,15 +276,45 @@ namespace YellowCounter.FileSystemState.PathRedux
                 softDeleted,
                 slot,
                 maxLinearSearch,
-                capacity));
+                capacity,
+                contiguous: true));
         }
 
         public ref T this[int index]
         {
             get
             {
+                // Verify that the element is available and not soft deleted
+                if(!elementsInUse[index])
+                    throw new ArgumentOutOfRangeException();
+
+                if(softDeleted[index])
+                    throw new ArgumentOutOfRangeException();
+
                 return ref mem[index];
             }
+        }
+
+        /// <summary>
+        /// Returns true if an element exists at the given index position.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public bool ExistsAt(int index)
+        {
+            if(index < 0)
+                return false;
+
+            if(index >= this.Capacity)
+                return false;
+
+            if(!elementsInUse[index])
+                return false;
+
+            if(softDeleted[index])
+                return false;
+
+            return true;
         }
 
         public ref struct Segment
@@ -263,16 +345,18 @@ namespace YellowCounter.FileSystemState.PathRedux
                 this.softDeleted, 
                 0,                  // Start at the beginning
                 scanLimit,          // Either 0 or all the elements
-                capacity);          // End at the end
+                capacity,           // End at the end
+                contiguous: false); 
         }
 
         public ref struct Enumerator
         {
-            private RSM rsm;
+            private Cursor cursor;
 
             private readonly T[] mem;
             private readonly BitArray elementsInUse;
             private readonly BitArray softDeleted;
+            private bool contiguous;
 
             public Enumerator(
                 T[] mem, 
@@ -280,13 +364,15 @@ namespace YellowCounter.FileSystemState.PathRedux
                 BitArray softDeleted, 
                 int start, 
                 int scanLimit, 
-                int capacity)
+                int capacity,
+                bool contiguous)
             {
                 this.mem = mem;
                 this.elementsInUse = elementsInUse;
                 this.softDeleted = softDeleted;
+                this.contiguous = contiguous;
 
-                this.rsm = new RSM(
+                this.cursor = new Cursor(
                     start,
                     capacity,
                     scanLimit);
@@ -296,37 +382,41 @@ namespace YellowCounter.FileSystemState.PathRedux
             {
                 get
                 {
-                    if(!rsm.Started)
+                    if(!cursor.Started)
                         throw new InvalidOperationException();
 
-                    return ref mem[rsm.Position];
+                    return ref mem[cursor.Index];
                 }
             }
 
             public bool MoveNext()
             {
-                bool foundSlot = false;
-
-                while(rsm.Inc())
+                while(cursor.MoveNext())
                 {
-                    // Skip over unused elements and soft-deleted elements until we reach
-                    // a position where the element at rsm.Position is "in use"
-                    // and not "soft deleted".
-                    if(elementsInUse[rsm.Position] && !softDeleted[rsm.Position])
+                    // The cursor can be used in two ways. If contiguous, we must have
+                    // a continuous sequence of elements all of which are "in use".
+                    // The enumeration will stop as soon as we hit an element which has
+                    // never been used.
+                    // If non-contiguous, we skip over elements which are not "in use"
+                    // and carry on until we find an "in use" element.
+                    if(!elementsInUse[cursor.Index])
                     {
-                        foundSlot = true;
-                        break;
+                        if(contiguous)
+                            return false;
+                        else
+                            continue;
                     }
+
+                    // Skip over soft deleted items.
+                    if(softDeleted[cursor.Index])
+                        continue;
+
+                    // Element is "in use" and not "soft deleted" so return it.
+                    return true;
                 }
 
-                // Exhausted the search, no more items, stop enumerating.
-                if(!foundSlot)
-                    return false;
-           
-                // rsm.Position will now point to an element which is available
-                // and not soft-deleted; this is picked up by Current.
-
-                return true;
+                // Exhausted the maximum search length of the cursor, stop enumerating.
+                return false;
             }
         }
     }
@@ -337,6 +427,31 @@ namespace YellowCounter.FileSystemState.PathRedux
             return source.TryStore(hash, value, out int _);
         }
 
+        public static List<T> ToList<T>(this HashBucket2<T> source)
+        {
+            var result = new List<T>(source.Usage);
+
+            foreach(var itm in source)
+            {
+                result.Add(itm);
+            }
+
+            return result;
+        }
+
+        public static T[] ToArray<T>(this HashBucket2<T> source)
+        {
+            var result = new T[source.Usage];
+
+            int idx = 0;
+            foreach(var itm in source)
+            {
+                result[idx] = itm;
+                idx++;
+            }
+
+            return result;
+        }
 
         public static IEnumerable<HashBucket2Options> SizeOptions<T>(this HashBucket2<T> source, int headroom = 0)
         {
