@@ -29,6 +29,12 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
         public HashBucket2(HashBucket2Options options) : this(options.Capacity, options.LinearSearchLimit) { }
 
+        /// <summary>
+        /// Creates a hash bucket using Open Addresssing.
+        /// </summary>
+        /// <param name="capacity">fixed maximum number of items we can store</param>
+        /// <param name="linearSearchLimit">Maximum distance from the hash provided to the
+        /// actual position we've stored the item at</param>
         public HashBucket2(int capacity, int linearSearchLimit)
         {
             mem = new T[capacity];
@@ -87,7 +93,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
             bool foundSlot = false;
 
             // Starting at the first slot, search for a free slot to put our
-            // data into. We might shoot past the end of capacity so
+            // data into. We might shoot past the end of the array so
             // using the cursor loops around back to the start.
             while(cursor.MoveNext())
             {
