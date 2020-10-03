@@ -101,6 +101,8 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         private void rebuildBuckets()
         {
+            // SizeOptions will give us choices of possible sizes for the replacement HashBucket
+            // We need to loop through each until we find one which fits.
             foreach(var opts in buckets.SizeOptions(headroom: 1))
             {
                 var replacement = new HashBucket<int>(opts);

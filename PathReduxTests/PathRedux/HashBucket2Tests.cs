@@ -18,7 +18,7 @@ namespace PathReduxTests.PathRedux
             var hb = new HashBucket2<decimal>(new HashBucket2Options()
             {
                 Capacity = 4,
-                LinearSearchLimit = 4
+                //LinearSearchLimit = 4
             });
 
             hb.TryStore(0, 123m).ShouldBe(true);
@@ -44,7 +44,7 @@ namespace PathReduxTests.PathRedux
             var hb = new HashBucket2<decimal>(new HashBucket2Options()
             {
                 Capacity = 4,
-                LinearSearchLimit = 4
+                //LinearSearchLimit = 4
             });
 
             hb.TryStore(2, 111m).ShouldBe(true);
@@ -70,7 +70,7 @@ namespace PathReduxTests.PathRedux
             var hb = new HashBucket2<decimal>(new HashBucket2Options()
             {
                 Capacity = 4,
-                LinearSearchLimit = 4
+                //LinearSearchLimit = 4
             });
 
             hb.TryStore(0, 123m).ShouldBe(true);
@@ -80,26 +80,26 @@ namespace PathReduxTests.PathRedux
             hb.TryStore(0, 99999m).ShouldBe(false);
         }
 
-        [TestMethod]
-        public void HashBucket2StorageTooManyHashCollisions()
-        {
-            var hb = new HashBucket2<decimal>(new HashBucket2Options()
-            {
-                Capacity = 4,
-                LinearSearchLimit = 2
-            });
+        //[TestMethod]
+        //public void HashBucket2StorageTooManyHashCollisions()
+        //{
+        //    var hb = new HashBucket2<decimal>(new HashBucket2Options()
+        //    {
+        //        Capacity = 4,
+        //        //LinearSearchLimit = 2
+        //    });
 
-            hb.TryStore(1, 123m).ShouldBe(true);
-            hb.TryStore(1, 456m).ShouldBe(true);
+        //    hb.TryStore(1, 123m).ShouldBe(true);
+        //    hb.TryStore(1, 456m).ShouldBe(true);
 
-            // The third number we store against hash 1 should fail because
-            // the linear search limit is 2.
-            hb.TryStore(1, 789m).ShouldBe(false);
+        //    // The third number we store against hash 1 should fail because
+        //    // the linear search limit is 2.
+        //    hb.TryStore(1, 789m).ShouldBe(false);
 
-            // But we should be able to store these at hash 3
-            hb.TryStore(3, 516m).ShouldBe(true);
-            hb.TryStore(3, 99999m).ShouldBe(true);
-        }
+        //    // But we should be able to store these at hash 3
+        //    hb.TryStore(3, 516m).ShouldBe(true);
+        //    hb.TryStore(3, 99999m).ShouldBe(true);
+        //}
 
         [TestMethod]
         public void HashBucket2RetrievalWraparound()
@@ -107,7 +107,7 @@ namespace PathReduxTests.PathRedux
             var hb = new HashBucket2<decimal>(new HashBucket2Options()
             {
                 Capacity = 4,
-                LinearSearchLimit = 2
+                //LinearSearchLimit = 2
             });
 
             // Because this is a bucket we can store multiple items against
@@ -134,7 +134,7 @@ namespace PathReduxTests.PathRedux
             var hb = new HashBucket2<decimal>(new HashBucket2Options()
             {
                 Capacity = 4,
-                LinearSearchLimit = 4
+                //LinearSearchLimit = 4
             });
 
             var indices = new int[4];
@@ -177,7 +177,7 @@ namespace PathReduxTests.PathRedux
             var hb = new HashBucket2<decimal>(new HashBucket2Options()
             {
                 Capacity = 4,
-                LinearSearchLimit = 4
+                //LinearSearchLimit = 4
             });
 
             var indices = new int[4];
@@ -219,7 +219,7 @@ namespace PathReduxTests.PathRedux
             var hb = new HashBucket2<decimal>(new HashBucket2Options()
             {
                 Capacity = 4,
-                LinearSearchLimit = 4
+                //LinearSearchLimit = 4
             });
 
             var indices = new int[4];
@@ -262,7 +262,7 @@ namespace PathReduxTests.PathRedux
             var hb = new HashBucket2<decimal>(new HashBucket2Options()
             {
                 Capacity = 4,
-                LinearSearchLimit = 4
+                //LinearSearchLimit = 4
             });
 
             var indices = new int[4];

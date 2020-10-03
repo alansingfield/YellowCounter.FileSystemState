@@ -20,7 +20,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
             hashBucket = new HashBucket2<TValue>(options ?? new SetByRefOptions()
             {
                 Capacity = 256,
-                LinearSearchLimit = 16
+                //LinearSearchLimit = 16
             });
         }
 
@@ -215,7 +215,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <summary>
         /// Maximum possible linear search we will undertake
         /// </summary>
-        public int LinearSearchLimit => hashBucket.LinearSearchLimit;
+        //public int LinearSearchLimit => hashBucket.LinearSearchLimit;
         /// <summary>
         /// Number of slots we are using at the moment (including soft deleted)
         /// </summary>
@@ -224,11 +224,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// Number of used slots excluding soft-deleted
         /// </summary>
         public int Usage => hashBucket.Usage;
-        /// <summary>
-        /// Longest linear search we've had to do. Starts at zero with nothing
-        /// stored. Maximum possible value will be same as LinearSearchLimit.
-        /// </summary>
-        public int MaxLinearSearch => hashBucket.MaxLinearSearch;
     }
 }
 

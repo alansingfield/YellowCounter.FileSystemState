@@ -178,7 +178,7 @@ namespace YellowCounter.FileSystemState
 
             gatherChanges();
 
-            foreach(var x in _state.Read())
+            foreach(ref readonly var x in _state.AsSpan())
             {
                 if(x.Flags.HasFlag(FileStateFlags.Seen))
                 {
@@ -187,8 +187,10 @@ namespace YellowCounter.FileSystemState
                     else if(x.Flags.HasFlag(FileStateFlags.Changed))
                         changes.Add(x);
                 }
-                else
+                else if(x.Flags.HasFlag(FileStateFlags.None)) // FIX!!! WRONG!!!
+                {
                     removals.Add(x);
+                }
             }
 
             acceptChanges();

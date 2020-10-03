@@ -37,6 +37,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 this.MoveLimit = moveLimit;
 
                 this.Index = startIndex;
+                this.StartIndex = startIndex;
                 this.MoveCount = 0;
                 this.Started = false;
                 this.Ended = false;
@@ -88,11 +89,10 @@ namespace YellowCounter.FileSystemState.HashedStorage
             /// Array index, will be in range 0..Capacity-1
             /// </summary>
             public int Index { get; private set; }
-
             public int MoveCount { get; private set; }
 
+            public int StartIndex { get; }
             public int Capacity { get; }
-
             public int MoveLimit { get; }
         }
     }

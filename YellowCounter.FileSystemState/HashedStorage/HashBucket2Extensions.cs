@@ -58,20 +58,20 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 // Capacity times root2, linear search factor divided by root2
                 factors.Add((1.4, 0.7));
             }
-            else
-            {
-                // Is our maximum linear search 10% of the search space or less?
-                // We can retain our original capacity, just increase linear search length
-                // This is often just a peak in hash collisions.
-                if(source.LinearSearchLimit < source.Capacity * 0.1)
-                {
-                    factors.Add((1.0, 1.4));
-                }
-                else
-                {
-                    factors.Add((1.4, 1.0));
-                }
-            }
+            //else
+            //{
+            //    // Is our maximum linear search 10% of the search space or less?
+            //    // We can retain our original capacity, just increase linear search length
+            //    // This is often just a peak in hash collisions.
+            //    if(source.LinearSearchLimit < source.Capacity * 0.1)
+            //    {
+            //        factors.Add((1.0, 1.4));
+            //    }
+            //    else
+            //    {
+            //        factors.Add((1.4, 1.0));
+            //    }
+            //}
 
             // If the first try doesn't cut it, increase both the capacity and the linear
             // search limit.
@@ -81,7 +81,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
             {
                 // Adjust original size by the chosen factors
                 int newCapacity = (int)(Math.Ceiling(source.Capacity * capacityFactor));
-                int newLinearSearchLimit = (int)(Math.Ceiling(source.LinearSearchLimit * linearFactor));
+                //int newLinearSearchLimit = (int)(Math.Ceiling(source.LinearSearchLimit * linearFactor));
 
                 // Sanity limits
 
@@ -90,18 +90,18 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 if(newCapacity < requiredSize)
                     newCapacity = requiredSize;
 
-                // Must linear search at least one item
-                if(newLinearSearchLimit < 1)
-                    newLinearSearchLimit = 1;
+                //// Must linear search at least one item
+                //if(newLinearSearchLimit < 1)
+                //    newLinearSearchLimit = 1;
 
-                // Can't linear search for more than the overall capacity!
-                if(newLinearSearchLimit > newCapacity)
-                    newLinearSearchLimit = newCapacity;
+                //// Can't linear search for more than the overall capacity!
+                //if(newLinearSearchLimit > newCapacity)
+                //    newLinearSearchLimit = newCapacity;
 
                 yield return new HashBucket2Options()
                 {
                     Capacity = newCapacity,
-                    LinearSearchLimit = newLinearSearchLimit
+                    //LinearSearchLimit = newLinearSearchLimit
                 };
             }
 

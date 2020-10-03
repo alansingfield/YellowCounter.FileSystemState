@@ -6,7 +6,7 @@ using System;
 namespace YellowCounter.FileSystemState
 {
     [Serializable]
-    internal class FileState
+    internal struct FileState
     {
         //[NonSerialized]
         public FileStateFlags Flags;
@@ -23,5 +23,6 @@ namespace YellowCounter.FileSystemState
         Seen = 1,
         Created = 2,
         Changed = 4,
+        Doomed = 8,
     }
 }

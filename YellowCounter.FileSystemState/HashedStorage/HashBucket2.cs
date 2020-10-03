@@ -25,9 +25,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
         private readonly int sizeofT;
         private int occupancy;
         private int usage;
-        private int maxLinearSearch;
 
-        public HashBucket2(HashBucket2Options options) : this(options.Capacity, options.LinearSearchLimit) { }
+        private int numChunks;
+        private int[] chunkProbeDepth;
 
         /// <summary>
         /// Creates a hash bucket using Open Addresssing.
@@ -35,28 +35,32 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <param name="capacity">fixed maximum number of items we can store</param>
         /// <param name="linearSearchLimit">Maximum distance from the hash provided to the
         /// actual position we've stored the item at</param>
-        public HashBucket2(int capacity, int linearSearchLimit)
+        public HashBucket2(HashBucket2Options options)
         {
+            this.capacity = options.Capacity;
+           // this.linearSearchLimit = options.LinearSearchLimit;
+
             mem = new T[capacity];
             elementsInUse = new BitArray(capacity);
             softDeleted = new BitArray(capacity);
             occupancy = 0;
             usage = 0;
 
-            this.capacity = capacity;
-            this.linearSearchLimit = linearSearchLimit;
-
             this.sizeofT = Unsafe.SizeOf<T>();
+
+            int chunkSize = options.ChunkSize;
+            if(chunkSize < 1)
+                chunkSize = 1;
+
+            numChunks = 1 + (capacity / chunkSize);
+
+            this.chunkProbeDepth = new int[numChunks];
         }
 
         /// <summary>
         /// Overall number of slots
         /// </summary>
         public int Capacity => this.capacity;
-        /// <summary>
-        /// Maximum possible linear search we will undertake
-        /// </summary>
-        public int LinearSearchLimit => this.linearSearchLimit;
         /// <summary>
         /// Number of slots we are using at the moment (including soft deleted)
         /// </summary>
@@ -65,11 +69,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// Number of used slots excluding soft-deleted
         /// </summary>
         public int Usage => this.usage;
-        /// <summary>
-        /// Longest linear search we've had to do. Starts at zero with nothing
-        /// stored. Maximum possible value will be same as LinearSearchLimit.
-        /// </summary>
-        public int MaxLinearSearch => this.maxLinearSearch;
 
         /// <summary>
         /// Stores value against the specified hash. Multiple values can be stored
@@ -84,11 +83,20 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <returns>True if storing worked.</returns>
         public virtual bool TryStore(int hash, T value, out int index)
         {
+            int slot = slotFromHash(hash);
+
+            // For a given block of array positions, we store the maximum known
+            // probe depth. This avoids searching the whole array.
+            ref var probeDepth = ref probeDepthFromSlot(slot);
+
+            // MULTITHREADING - probeDepth might need to go further than +1 to account for
+            // other threads accessing same chunk.
+
             // Calculate which is the first slot we should try
             var cursor = new Cursor(
-                slotFromHash(hash),
+                slot,
                 this.capacity,
-                this.linearSearchLimit);
+                probeDepth + 1);
 
             bool foundSlot = false;
 
@@ -128,9 +136,12 @@ namespace YellowCounter.FileSystemState.HashedStorage
             }
 
             // Keep track of the longest linear search we've had to do
-            // so far.
-            if(maxLinearSearch <= cursor.MoveCount)
-                maxLinearSearch = cursor.MoveCount + 1;
+            // so far for this chunk. Never let this get bigger than the capacity
+            // of the array as we would end up in an infinite loop.
+            if(probeDepth <= cursor.MoveCount && probeDepth <= this.capacity)
+            {
+                probeDepth = cursor.MoveCount + 1;
+            }
 
             // Return the position we stored the item at.
             index = cursor.Index;
@@ -189,6 +200,10 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <returns></returns>
         private int slotFromHash(int hash) => (int)unchecked((uint)hash % (uint)Capacity);
 
+        private int chunkFromSlot(int position) => position / numChunks;
+
+        private ref int probeDepthFromSlot(int position) => ref this.chunkProbeDepth[chunkFromSlot(position)];
+
         /// <summary>
         /// Enumerate items stored under the given hash. Note that
         /// due to hash collisions, you will also be presented with items which do
@@ -201,13 +216,16 @@ namespace YellowCounter.FileSystemState.HashedStorage
             // Calculate the first spot our result could be in
             int slot = slotFromHash(hash);
 
+            // Calculate how far the maximum search depth is
+            int probeDepth = probeDepthFromSlot(slot);
+
             // Enumerate from this slot onwards.
             return new Segment(new Enumerator(
                 mem,
                 elementsInUse,
                 softDeleted,
                 slot,
-                maxLinearSearch,
+                probeDepth,
                 capacity,
                 contiguous: true));
         }

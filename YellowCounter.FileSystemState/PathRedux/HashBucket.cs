@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace YellowCounter.FileSystemState.PathRedux
@@ -25,6 +26,8 @@ namespace YellowCounter.FileSystemState.PathRedux
         private BitArray elementsInUse;
         private int occupancy;
         private int maxLinearSearch;
+
+        private T deadValue = default(T);
 
         public HashBucket(HashBucketOptions options) : this(options.Capacity, options.LinearSearchLimit) { }
 
@@ -69,7 +72,7 @@ namespace YellowCounter.FileSystemState.PathRedux
             // Calculate which is the first slot we should try
             RSM rsm = new RSM(
                 slotFromHash(hash),
-                this.capacity, 
+                this.capacity,
                 this.linearSearchLimit);
 
             // Starting at the first slot, search for a free slot to put our
@@ -81,7 +84,7 @@ namespace YellowCounter.FileSystemState.PathRedux
                 if(!rsm.Inc())
                     return false;
             }
-            
+
             var span = mem.Span;
 
             // Write to the memory and our "in use" bit array.
@@ -178,6 +181,76 @@ namespace YellowCounter.FileSystemState.PathRedux
             return mem.Span.Slice(slot, pos);
         }
 
+        public ReadOnlySpan<T> AsSpan() => mem.Span;
+
+        public Section RetrieveX(int hash)
+        {
+            // Calculate the first spot our result could be in
+            int slot = slotFromHash(hash);
+
+            return new Section(new Enumerator(
+                mem.Span,
+                elementsInUse,
+                slot,
+                maxLinearSearch,
+                capacity));
+        }
+
+        public ref struct Section
+        {
+            Enumerator enumerator;
+
+            public Section(Enumerator enumerator)
+            {
+                this.enumerator = enumerator;
+            }
+
+            public Enumerator GetEnumerator() => this.enumerator;
+        }
+
+        public Enumerator GetEnumerator()
+        {
+            var bufSpan = mem.Span;
+
+            return new Enumerator(bufSpan, this.elementsInUse, 0, capacity, capacity);
+        }
+
+        public ref struct Enumerator
+        {
+            private int pos;
+            private int length;
+            private int capacity;
+            private readonly Span<T> bufSpan;
+            private readonly BitArray elementsInUse;
+
+            public Enumerator(Span<T> bufSpan, BitArray elementsInUse, int start, int length, int capacity)
+            {
+                pos = start -1;
+
+                this.bufSpan = bufSpan;
+                this.elementsInUse = elementsInUse;
+                this.length = length;
+                this.capacity = capacity;
+            }
+
+            public ref T Current => ref bufSpan[pos];
+
+            public bool MoveNext()
+            {
+                // BZZZT WRONG -- need to keep iterating until elementsInUse is false.
+                // Skip over soft-deleted items
+                // Loop round to the start if we reach the end.
+                // Keep track of linear search limit
+                // Skip over unused items.
+                while(!elementsInUse[pos] && pos < bufSpan.Length)
+                    pos++;
+
+                if(pos >= bufSpan.Length)
+                    return false;
+
+                return true;
+            }
+        }
     }
 
 }
