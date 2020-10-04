@@ -50,7 +50,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
             int chunkSize = options.ChunkSize;
             if(chunkSize < 1)
-                chunkSize = 1;
+                chunkSize = capacity;
 
             numChunks = 1 + (capacity / chunkSize);
 
@@ -84,6 +84,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         public virtual bool TryStore(int hash, T value, out int index)
         {
             int slot = slotFromHash(hash);
+            int slotB = PseudoRandomSequence.Permute(slot);
 
             // For a given block of array positions, we store the maximum known
             // probe depth. This avoids searching the whole array.
@@ -92,10 +93,13 @@ namespace YellowCounter.FileSystemState.HashedStorage
             // MULTITHREADING - probeDepth might need to go further than +1 to account for
             // other threads accessing same chunk.
 
+
+
             // Calculate which is the first slot we should try
-            var cursor = new Cursor(
-                slot,
+            var cursor = new DualCursor(
                 this.capacity,
+                slot,
+                slotB,
                 probeDepth + 1);
 
             bool foundSlot = false;
