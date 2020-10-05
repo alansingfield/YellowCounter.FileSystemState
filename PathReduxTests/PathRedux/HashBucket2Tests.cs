@@ -3,6 +3,7 @@ using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using UnitTestCoder.Shouldly.Gen;
 using YellowCounter.FileSystemState.HashedStorage;
@@ -689,6 +690,196 @@ namespace PathReduxTests.PathRedux
                     "|    2000|  415.65|",
                 });
             }
+        }
+
+
+
+        [TestMethod]
+        public void HashBucket2RandomDistributionAverageProbe()
+        {
+            var random = new Random(Seed: 12345);
+
+            var hb = new HashBucket2<int>(new HashBucket2Options()
+            {
+                Capacity = 2000,
+                ChunkSize = 50,
+            });
+
+            var testpoints = new int[] { 500, 1000, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000 };
+
+            var result = new List<string>();
+            result.AddRange(new[]
+            {
+                "|Usage   |Same    |Diff    |Max     |",
+                "|--------|--------|--------|--------|",
+            });
+
+            for(int i = 0; i < hb.Capacity; i++)
+            {
+                int hash = random.Next(2000);
+
+                hb.TryStore(hash, i).ShouldBeTrue();
+
+                if(testpoints.Contains(hb.Usage))
+                {
+                    var probeMax = Enumerable
+                        .Range(0, hb.Capacity / hb.ChunkSize)
+                        .Average(x => (double)hb.ProbeDepth(x * hb.ChunkSize));
+
+                    // Calculate the average probe depth.
+                    // Try retrieving same items and/or a different list of items.
+                    var probeAverageSame = avgProbeLength(hb, new Random(Seed: 12345), i);
+                    var probeAverageDiff = avgProbeLength(hb, new Random(Seed: 99999), i);
+
+                    result.Add(
+                        String.Join("|",
+                        new[]
+                        {
+                            "",
+                            $"{hb.Usage,8}",
+                            $"{probeAverageSame,8:F2}",
+                            $"{probeAverageDiff,8:F2}",
+                            $"{probeMax,8:F2}",
+                            ""
+                        }
+                        ));
+                }
+            }
+
+            ShouldlyTest.Gen(result, nameof(result));
+
+            {
+                result.ShouldBe(new[] {
+                    "|Usage   |Same    |Diff    |Max     |",
+                    "|--------|--------|--------|--------|",
+                    "|     500|    1.52|    0.31|    2.35|",
+                    "|    1000|    2.64|    1.15|    4.50|",
+                    "|    1300|    4.02|    2.27|    6.90|",
+                    "|    1400|    4.95|    3.06|    9.22|",
+                    "|    1500|    6.28|    4.07|   11.88|",
+                    "|    1600|    7.63|    5.19|   13.97|",
+                    "|    1750|   11.96|    9.20|   21.12|",
+                    "|    1800|   14.43|   11.46|   24.10|",
+                    "|    1900|   27.79|   23.78|   43.30|",
+                    "|    2000|  382.67|  380.55|  380.05|",
+                });
+            }
+        }
+
+        [TestMethod]
+        public void HashBucket2RandomDistributionAverageProbeSmallChunk()
+        {
+            var random = new Random(Seed: 12345);
+
+            var hb = new HashBucket2<int>(new HashBucket2Options()
+            {
+                Capacity = 2000,
+                ChunkSize = 20,
+            });
+
+            var testpoints = new int[] { 500, 1000, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000 };
+
+            var result = new List<string>();
+            result.AddRange(new[]
+            {
+                "|Usage   |Same    |Diff    |Mode    |Max     |",
+                "|--------|--------|--------|--------|--------|",
+            });
+
+            for(int i = 0; i < hb.Capacity; i++)
+            {
+                int hash = random.Next(2000);
+
+                hb.TryStore(hash, i).ShouldBeTrue();
+
+                if(testpoints.Contains(hb.Usage))
+                {
+                    var probeMax = Enumerable
+                        .Range(0, hb.Capacity / hb.ChunkSize)
+                        .Average(x => (double)hb.ProbeDepth(x * hb.ChunkSize));
+
+                    var probeMode = modalProbeLength(hb, new Random(Seed: 99999), i);
+
+                    // Calculate the average probe depth.
+                    // Try retrieving same items and/or a different list of items.
+                    var probeAverageSame = avgProbeLength(hb, new Random(Seed: 12345), i);
+                    var probeAverageDiff = avgProbeLength(hb, new Random(Seed: 99999), i);
+
+                    result.Add(
+                        String.Join("|",
+                        new[]
+                        {
+                            "",
+                            $"{hb.Usage,8}",
+                            $"{probeAverageSame,8:F2}",
+                            $"{probeAverageDiff,8:F2}",
+                            $"{probeMode,8:F2}",
+                            $"{probeMax,8:F2}",
+                            ""
+                        }
+                        ));
+                }
+            }
+
+            //ShouldlyTest.Gen(result, nameof(result));
+
+            {
+                result.ShouldBe(new[] {
+                    "|Usage   |Same    |Diff    |Mode    |Max     |",
+                    "|--------|--------|--------|--------|--------|",
+                    "|     500|    1.42|    0.29|    1.00|    1.65|",
+                    "|    1000|    2.45|    1.06|    1.00|    3.26|",
+                    "|    1300|    3.59|    2.03|    2.00|    4.88|",
+                    "|    1400|    4.37|    2.70|    2.00|    6.26|",
+                    "|    1500|    5.48|    3.51|    2.00|    7.67|",
+                    "|    1600|    6.69|    4.54|    2.00|    9.29|",
+                    "|    1700|    8.44|    6.07|    5.00|   11.49|",
+                    "|    1800|   12.22|    9.53|    5.00|   16.24|",
+                    "|    1900|   21.41|   17.84|    5.00|   26.42|",
+                    "|    2000|  188.33|  189.84|    9.00|  188.75|",
+                });
+            }
+        }
+
+        private double avgProbeLength(HashBucket2<int> hb, Random random, int count)
+        {
+            double probe = 0;
+
+            for(int i = 0; i < count; i++)
+            {
+                int hash = random.Next(2000);
+
+                foreach(var itm in hb.Retrieve(hash))
+                {
+                    probe++;
+                }
+            }
+
+            return probe / count;
+        }
+
+        private int? modalProbeLength(HashBucket2<int> hb, Random random, int count)
+        {
+            var probes = new int[count];
+
+            for(int i = 0; i < count; i++)
+            {
+                int hash = random.Next(2000);
+
+                foreach(var itm in hb.Retrieve(hash))
+                {
+                    probes[i]++;
+                }
+            }
+
+            int? mode = probes
+                .Where(x => x!= 0)
+                .GroupBy(x => x)
+                .OrderByDescending(x => x.Count()).ThenBy(x => x.Key)
+                .Select(x => (int?)x.Key)
+                .FirstOrDefault();
+
+            return mode;
         }
     }
 }
