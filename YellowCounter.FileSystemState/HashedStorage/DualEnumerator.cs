@@ -7,19 +7,20 @@ namespace YellowCounter.FileSystemState.HashedStorage
 {
     public partial class HashBucket2<T>
     {
-        public ref struct Enumerator
+        public ref struct DualEnumerator
         {
-            private Cursor cursor;
+            private DualCursor cursor;
 
             private readonly T[] mem;
             private readonly BitArray elementsInUse;
             private readonly BitArray softDeleted;
 
-            public Enumerator(
+            public DualEnumerator(
                 T[] mem,
                 BitArray elementsInUse,
                 BitArray softDeleted,
-                int start,
+                int startIndexA,
+                int startIndexB,
                 int scanLimit,
                 int capacity)
             {
@@ -27,9 +28,10 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 this.elementsInUse = elementsInUse;
                 this.softDeleted = softDeleted;
 
-                this.cursor = new Cursor(
-                    start,
+                this.cursor = new DualCursor(
                     capacity,
+                    startIndexA,
+                    startIndexB,
                     scanLimit);
             }
 
@@ -48,10 +50,11 @@ namespace YellowCounter.FileSystemState.HashedStorage
             {
                 while(cursor.MoveNext())
                 {
-                    // We skip over elements which are not "in use"
-                    // and carry on until we find an "in use" element.
+                    // We must have a continuous sequence of elements all of which are "in use".
+                    // The enumeration will stop as soon as we hit an element which has
+                    // never been used.
                     if(!elementsInUse[cursor.Index])
-                        continue;
+                        return false;
 
                     // Skip over soft deleted items.
                     if(softDeleted[cursor.Index])

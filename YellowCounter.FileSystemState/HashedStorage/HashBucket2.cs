@@ -19,7 +19,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
     {
         private T[] mem;
         private readonly int capacity;
-        private readonly int linearSearchLimit;
         private readonly BitArray elementsInUse;
         private readonly BitArray softDeleted;
         private readonly int sizeofT;
@@ -83,24 +82,19 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <returns>True if storing worked.</returns>
         public virtual bool TryStore(int hash, T value, out int index)
         {
-            int slot = slotFromHash(hash);
-            int slotB = PseudoRandomSequence.Permute(slot);
+            int slotA = slotFromHash(hash);
+            int slotB = slotFromHash(PseudoRandomSequence.Permute(hash));
 
             // For a given block of array positions, we store the maximum known
             // probe depth. This avoids searching the whole array.
-            ref var probeDepth = ref probeDepthFromSlot(slot);
-
-            // MULTITHREADING - probeDepth might need to go further than +1 to account for
-            // other threads accessing same chunk.
-
-
+            ref var probeDepth = ref probeDepthFromSlot(slotA);
 
             // Calculate which is the first slot we should try
             var cursor = new DualCursor(
                 this.capacity,
-                slot,
+                slotA,
                 slotB,
-                probeDepth + 1);
+                this.capacity);
 
             bool foundSlot = false;
 
@@ -140,9 +134,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
             }
 
             // Keep track of the longest linear search we've had to do
-            // so far for this chunk. Never let this get bigger than the capacity
+            // so far for this chunk.Never let this get bigger than the capacity
             // of the array as we would end up in an infinite loop.
-            if(probeDepth <= cursor.MoveCount && probeDepth <= this.capacity)
+            if(probeDepth <= cursor.MoveCount && probeDepth < this.capacity)
             {
                 probeDepth = cursor.MoveCount + 1;
             }
@@ -218,20 +212,21 @@ namespace YellowCounter.FileSystemState.HashedStorage
         public Segment Retrieve(int hash)
         {
             // Calculate the first spot our result could be in
-            int slot = slotFromHash(hash);
+            int slotA = slotFromHash(hash);
+            int slotB = slotFromHash(PseudoRandomSequence.Permute(hash));
 
             // Calculate how far the maximum search depth is
-            int probeDepth = probeDepthFromSlot(slot);
+            int probeDepth = probeDepthFromSlot(slotA);
 
             // Enumerate from this slot onwards.
-            return new Segment(new Enumerator(
+            return new Segment(new DualEnumerator(
                 mem,
                 elementsInUse,
                 softDeleted,
-                slot,
+                slotA,
+                slotB,
                 probeDepth,
-                capacity,
-                contiguous: true));
+                capacity));
         }
 
         /// <summary>
@@ -295,9 +290,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 this.elementsInUse, 
                 this.softDeleted, 
                 0,                  // Start at the beginning
-                scanLimit,          // Either 0 or all the elements
-                capacity,           // End at the end
-                contiguous: false); // Stop when we hit the first gap.
+                scanLimit,          // All the elements
+                capacity);          // Enumerate to the end.
         }
     }
 }

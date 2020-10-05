@@ -27,8 +27,6 @@ namespace YellowCounter.FileSystemState.PathRedux
         private int occupancy;
         private int maxLinearSearch;
 
-        private T deadValue = default(T);
-
         public HashBucket(HashBucketOptions options) : this(options.Capacity, options.LinearSearchLimit) { }
 
         public HashBucket(int capacity, int linearSearchLimit)

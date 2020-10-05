@@ -20,7 +20,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         {
             if(startIndex < 0 || startIndex >= capacity)
                 throw new ArgumentException(
-                    $"{nameof(startIndex)} must be between 0 and ${nameof(capacity)}-1",
+                    $"{nameof(startIndex)} must be between 0 and {nameof(capacity)}-1",
                     nameof(startIndex));
 
             if(moveLimit < 0)

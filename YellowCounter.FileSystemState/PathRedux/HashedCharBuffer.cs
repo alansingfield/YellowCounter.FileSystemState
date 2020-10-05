@@ -8,7 +8,6 @@ namespace YellowCounter.FileSystemState.PathRedux
 {
     public class HashedCharBuffer
     {
-        private readonly int linearSearchLimit;
         private CharBuffer charBuffer;
         private HashBucket<int> hashLookup;
         private readonly Func<IHashCode> newHashCode;

@@ -8,14 +8,14 @@ namespace YellowCounter.FileSystemState.HashedStorage
     {
         public ref struct Segment
         {
-            Enumerator enumerator;
+            DualEnumerator enumerator;
 
-            public Segment(Enumerator enumerator)
+            public Segment(DualEnumerator enumerator)
             {
                 this.enumerator = enumerator;
             }
 
-            public Enumerator GetEnumerator() => this.enumerator;
+            public DualEnumerator GetEnumerator() => this.enumerator;
         }
     }
 }
