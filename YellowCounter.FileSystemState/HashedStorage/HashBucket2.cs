@@ -25,7 +25,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         private int occupancy;
         private int usage;
         private Func<int, int> permute;
-
+        private readonly int chunkSize;
         private int numChunks;
         private int[] chunkProbeDepth;
 
@@ -39,6 +39,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         {
             this.capacity = options.Capacity;
             this.permute = options.Permute;
+            this.chunkSize = options.ChunkSize;
            // this.linearSearchLimit = options.LinearSearchLimit;
 
             mem = new T[capacity];
@@ -53,9 +54,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
             if(chunkSize < 1)
                 chunkSize = capacity;
 
-            numChunks = 1 + (capacity / chunkSize);
+            numChunks = capacity / chunkSize;
 
-            this.chunkProbeDepth = new int[numChunks];
+            this.chunkProbeDepth = new int[numChunks + 1];
         }
 
         /// <summary>
@@ -70,6 +71,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// Number of used slots excluding soft-deleted
         /// </summary>
         public int Usage => this.usage;
+
+        public int ChunkSize => chunkSize;
 
         public virtual int Permute(int hash)
         {
@@ -210,7 +213,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <returns></returns>
         private int slotFromHash(int hash) => (int)unchecked((uint)hash % (uint)Capacity);
 
-        private int chunkFromSlot(int position) => position / numChunks;
+        private int chunkFromSlot(int position) => position / ChunkSize;
 
         private ref int probeDepthFromSlot(int position) => ref this.chunkProbeDepth[chunkFromSlot(position)];
 

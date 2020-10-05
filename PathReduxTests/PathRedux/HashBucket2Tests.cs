@@ -411,5 +411,284 @@ namespace PathReduxTests.PathRedux
         }
 
 
+        [TestMethod]
+        public void HashBucket2RandomDistribution()
+        {
+            var random = new Random(Seed: 12345);
+
+            var hb = new HashBucket2<int>(new HashBucket2Options()
+            {
+                Capacity = 2000,
+                ChunkSize = 200,
+            });
+
+            var testpoints = new int[] { 500, 1000, 1300, 1400, 1500, 1750, 1800, 1900, 2000 };
+
+            var result = new List<string>();
+            result.AddRange(new[]
+            {
+                "|Usage   |        |        |        |        |        |        |        |        |        |        |        |",
+                "|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|",
+            });
+
+            for(int i = 0; i < hb.Capacity; i++)
+            {
+                int hash = random.Next(2000);
+
+                hb.TryStore(hash, i).ShouldBeTrue();
+
+                if(testpoints.Contains(hb.Usage))
+                {
+                    var probeAverage = Enumerable
+                        .Range(0, 10)
+                        .Average(x => (double)hb.ProbeDepth(x * hb.ChunkSize));
+
+                    result.Add(
+                        
+                        String.Join("|",
+                        new[]
+                        {
+                            "",
+                            $"{hb.Usage,8}"
+                        }.Concat(
+                            Enumerable.Range(0, 10)
+                                .Select(x => $"{hb.ProbeDepth(x * hb.ChunkSize),8}")
+                        )
+                        .Concat(new [] {
+                            $"{probeAverage,8:F2}",
+                            ""
+                            })
+                        ));
+                }
+            }
+
+            // This demonstrates how the probe depth increases dramatically as you approach
+            // 100% fill. However, the chunking cuts down on the maximum probe depth in many
+            // cases.
+            //ShouldlyTest.Gen(result, nameof(result));
+
+            {
+                result.ShouldBe(new[] {
+                    "|Usage   |        |        |        |        |        |        |        |        |        |        |        |",
+                    "|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|",
+                    "|     500|       3|       4|       4|       5|       3|       3|       3|       3|       3|       3|    3.40|",
+                    "|    1000|       5|      14|       6|       6|       8|       7|       4|       6|       7|       5|    6.80|",
+                    "|    1300|       8|      14|       8|       7|       8|      12|      14|      14|       9|       8|   10.20|",
+                    "|    1400|      18|      14|      16|       7|      20|      12|      14|      14|      10|      23|   14.80|",
+                    "|    1500|      24|      15|      25|      13|      22|      12|      14|      20|      12|      23|   18.00|",
+                    "|    1750|      31|      52|      52|      23|      43|      52|      23|      31|      23|      30|   36.00|",
+                    "|    1800|      48|      52|      52|      26|      43|      52|      50|      31|      23|      30|   40.70|",
+                    "|    1900|     161|     110|      64|      89|      91|      52|      50|      64|      23|      57|   76.10|",
+                    "|    2000|    1821|    1170|    1055|    1170|    1096|     169|    1171|     187|     233|     331|  840.30|",
+                });
+            }
+        }
+
+        [TestMethod]
+        public void HashBucket2RandomDistributionWithoutDualHashing()
+        {
+            var random = new Random(Seed: 12345);
+
+            var hb = new HashBucket2<int>(new HashBucket2Options()
+            {
+                Capacity = 2000,
+                ChunkSize = 200,
+                Permute = x => x,       // Don't use the second hashing.
+            });
+
+            var testpoints = new int[] { 500, 1000, 1300, 1400, 1500, 1750, 1800, 1900, 2000 };
+
+            var result = new List<string>();
+            result.AddRange(new[]
+            {
+                "|Usage   |        |        |        |        |        |        |        |        |        |        |        |",
+                "|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|",
+            });
+
+            for(int i = 0; i < hb.Capacity; i++)
+            {
+                int hash = random.Next(2000);
+
+                hb.TryStore(hash, i).ShouldBeTrue();
+
+                if(testpoints.Contains(hb.Usage))
+                {
+                    var probeAverage = Enumerable
+                        .Range(0, 10)
+                        .Average(x => (double)hb.ProbeDepth(x * hb.ChunkSize));
+
+
+
+                    result.Add(
+
+                        String.Join("|",
+                        new[]
+                        {
+                            "",
+                            $"{hb.Usage,8}"
+                        }.Concat(
+                            Enumerable.Range(0, 10)
+                                .Select(x => $"{hb.ProbeDepth(x * hb.ChunkSize),8}")
+                        )
+                        .Concat(new[] {
+                            $"{probeAverage,8:F2}",
+                            ""
+                            })
+                        ));
+                }
+            }
+
+            // This demonstrates how the probe depth increases dramatically as you approach
+            // 100% fill. Not using the second hashing almost doubles the probe depth at 90%
+            // capacity.
+            //ShouldlyTest.Gen(result, nameof(result));
+
+            {
+                result.ShouldBe(new[] {
+                    "|Usage   |        |        |        |        |        |        |        |        |        |        |        |",
+                    "|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|",
+                    "|     500|       3|       4|       4|       3|       2|       3|       2|       4|       4|       3|    3.20|",
+                    "|    1000|       9|      13|      14|       9|       9|       9|       3|       6|       6|       3|    8.10|",
+                    "|    1300|      15|      15|      19|       9|      10|       9|       6|      34|      22|       7|   14.60|",
+                    "|    1400|      37|      30|      26|       9|      11|      11|       9|      34|      27|       7|   20.10|",
+                    "|    1500|      39|      30|      26|      13|      20|      11|       9|      34|      33|      18|   23.30|",
+                    "|    1750|      51|     126|      49|      40|      31|      40|      13|      37|     153|      22|   56.20|",
+                    "|    1800|      51|     135|      78|      45|     132|      40|      13|      37|     153|      28|   71.20|",
+                    "|    1900|     621|     606|     348|     122|     138|      87|      18|      47|     153|      48|  218.80|",
+                    "|    2000|    1251|    1266|    1116|     890|     729|     251|     439|      74|     305|     166|  648.70|",
+                });
+            }
+        }
+
+
+        [TestMethod]
+        public void HashBucket2RandomDistributionMoreChunks()
+        {
+            var random = new Random(Seed: 12345);
+
+            var hb = new HashBucket2<int>(new HashBucket2Options()
+            {
+                Capacity = 2000,
+                ChunkSize = 50,
+            });
+
+            var testpoints = new int[] { 500, 1000, 1300, 1400, 1500, 1750, 1800, 1900, 2000 };
+
+            var result = new List<string>();
+            result.AddRange(new[]
+            {
+                "|Usage   |Probe   |",
+                "|--------|--------|",
+            });
+
+            for(int i = 0; i < hb.Capacity; i++)
+            {
+                int hash = random.Next(2000);
+
+                hb.TryStore(hash, i).ShouldBeTrue();
+
+                if(testpoints.Contains(hb.Usage))
+                {
+                    var probeAverage = Enumerable
+                        .Range(0, 40)
+                        .Average(x => (double)hb.ProbeDepth(x * hb.ChunkSize));
+
+                    result.Add(
+                        String.Join("|",
+                        new[]
+                        {
+                            "",
+                            $"{hb.Usage,8}",
+                            $"{probeAverage,8:F2}",
+                            ""
+                        }
+                        ));
+                }
+            }
+
+            // Does reducing the chunk size (and increasing mem usage) give us a better distribution?
+            //ShouldlyTest.Gen(result, nameof(result));
+            {
+                result.ShouldBe(new[] {
+                    "|Usage   |Probe   |",
+                    "|--------|--------|",
+                    "|     500|    2.35|",
+                    "|    1000|    4.50|",
+                    "|    1300|    6.90|",
+                    "|    1400|    9.22|",
+                    "|    1500|   11.88|",
+                    "|    1750|   21.12|",
+                    "|    1800|   24.10|",
+                    "|    1900|   43.30|",
+                    "|    2000|  380.05|",
+                    });
+            }
+        }
+
+        [TestMethod]
+        public void HashBucket2RandomDistributionMoreChunksWithoutDualHashing()
+        {
+            var random = new Random(Seed: 12345);
+
+            var hb = new HashBucket2<int>(new HashBucket2Options()
+            {
+                Capacity = 2000,
+                ChunkSize = 50,
+                Permute = x => x,       // Don't use the second hashing.
+            });
+
+            var testpoints = new int[] { 500, 1000, 1300, 1400, 1500, 1750, 1800, 1900, 2000 };
+
+            var result = new List<string>();
+            result.AddRange(new[]
+            {
+                "|Usage   |Probe   |",
+                "|--------|--------|",
+            });
+
+            for(int i = 0; i < hb.Capacity; i++)
+            {
+                int hash = random.Next(2000);
+
+                hb.TryStore(hash, i).ShouldBeTrue();
+
+                if(testpoints.Contains(hb.Usage))
+                {
+                    var probeAverage = Enumerable
+                        .Range(0, 40)
+                        .Average(x => (double)hb.ProbeDepth(x * hb.ChunkSize));
+
+                    result.Add(
+                        String.Join("|",
+                        new[]
+                        {
+                            "",
+                            $"{hb.Usage,8}",
+                            $"{probeAverage,8:F2}",
+                            ""
+                        }
+                        ));
+                }
+            }
+
+            // Does reducing the chunk size (and increasing mem usage) give us a better distribution?
+            // Here we're not using the second hashing and the probe depths are much longer.
+            //ShouldlyTest.Gen(result, nameof(result));
+            {
+                result.ShouldBe(new[] {
+                    "|Usage   |Probe   |",
+                    "|--------|--------|",
+                    "|     500|    2.12|",
+                    "|    1000|    5.00|",
+                    "|    1300|    8.68|",
+                    "|    1400|   11.50|",
+                    "|    1500|   14.32|",
+                    "|    1750|   35.52|",
+                    "|    1800|   46.58|",
+                    "|    1900|  127.72|",
+                    "|    2000|  415.65|",
+                });
+            }
+        }
     }
 }
