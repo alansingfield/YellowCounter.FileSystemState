@@ -8,5 +8,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
     {
         public int Capacity { get; set; }
         public int ChunkSize { get; set; }
+        public Func<int, int> Permute {get;set; }
     }
 }

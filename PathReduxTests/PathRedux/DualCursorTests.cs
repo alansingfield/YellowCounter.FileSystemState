@@ -242,6 +242,44 @@ namespace PathReduxTests.PathRedux
 
 
         [TestMethod]
+        public void DualCursorProbeLimitOverlapWraparound()
+        {
+            var dc = new DualCursor(
+                capacity: 8,
+                startIndexA: 6,
+                startIndexB: 1,
+                probeLimit: 8);
+
+            var indices = new int[8];
+
+            for(int i = 0; i < 8; i++)
+            {
+                dc.MoveNext(); //.ShouldBeTrue();
+                indices[i] = dc.Index;
+            }
+
+            dc.MoveNext().ShouldBeFalse();
+
+            //ShouldlyTest.Gen(indices, nameof(indices));
+
+            {
+                indices.ShouldNotBeNull();
+                indices.Count().ShouldBe(8);
+                indices[0].ShouldBe(6);
+                indices[1].ShouldBe(1);
+                indices[2].ShouldBe(7);
+                indices[3].ShouldBe(2);
+                indices[4].ShouldBe(0);
+                indices[5].ShouldBe(3);
+                indices[6].ShouldBe(4);
+                indices[7].ShouldBe(5);
+            }
+        }
+
+
+
+
+        [TestMethod]
         public void DualCursorProbeLimitEqual()
         {
             var dc = new DualCursor(

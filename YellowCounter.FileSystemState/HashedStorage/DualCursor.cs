@@ -50,11 +50,10 @@ namespace YellowCounter.FileSystemState.HashedStorage
             this.Started = false;
             this.Ended = false;
 
-            // Divide the probe limit in half. We always start with A, so
-            // if the probe limit is an odd number, A's limit will be odd
-            // and 1 bigger than B's.
-            int probeLimitB = probeLimit >> 1;
-            int probeLimitA = probeLimit - probeLimitB;
+
+
+            int maxProbeA;
+            int maxProbeB;
 
             // When indexA is near to but smaller than indexB, the A cursor
             // could end up straying into cursor B's range. So limit the
@@ -63,31 +62,35 @@ namespace YellowCounter.FileSystemState.HashedStorage
             // will not be used at all.
             if(startIndexA <= startIndexB)
             {
-                int maxProbeA = startIndexB - startIndexA;
-
-                if(probeLimitA > maxProbeA)
-                {
-                    // Calculate how many probes A can't do
-                    int probeExcessA = probeLimitA - maxProbeA;
-
-                    // Give these probes to B.
-                    probeLimitA -= probeExcessA;
-                    probeLimitB += probeExcessA;
-                }
+                maxProbeA = startIndexB - startIndexA;
+                maxProbeB = capacity - maxProbeA;
             }
             else
             {
-                int maxProbeB = startIndexA - startIndexB;
+                maxProbeB = startIndexA - startIndexB;
+                maxProbeA = capacity - maxProbeB;
+            }
 
-                if(probeLimitB > maxProbeB)
-                {
-                    // Calculate how many probes B can't do
-                    int probeExcessB = probeLimitB - maxProbeB;
+            // Divide the probe limit in half. We always start with A, so
+            // if the probe limit is an odd number, A's limit will be odd
+            // and 1 bigger than B's.
+            int probeLimitB = probeLimit >> 1;
+            int probeLimitA = probeLimit - probeLimitB;
 
-                    // Give these probes to A.
-                    probeLimitB -= probeExcessB;
-                    probeLimitA += probeExcessB;
-                }
+            if(probeLimitA > maxProbeA)
+            {
+                int excess = probeLimitA - maxProbeA;
+
+                probeLimitA -= excess;
+                probeLimitB += excess;
+            }
+
+            if(probeLimitB > maxProbeB)
+            {
+                int excess = probeLimitB - maxProbeB;
+
+                probeLimitB -= excess;
+                probeLimitA += excess;
             }
 
             this.cursorA = new Cursor(startIndexA, capacity, probeLimitA);

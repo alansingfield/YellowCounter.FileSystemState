@@ -24,6 +24,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         private readonly int sizeofT;
         private int occupancy;
         private int usage;
+        private Func<int, int> permute;
 
         private int numChunks;
         private int[] chunkProbeDepth;
@@ -37,6 +38,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         public HashBucket2(HashBucket2Options options)
         {
             this.capacity = options.Capacity;
+            this.permute = options.Permute;
            // this.linearSearchLimit = options.LinearSearchLimit;
 
             mem = new T[capacity];
@@ -69,6 +71,16 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// </summary>
         public int Usage => this.usage;
 
+        public virtual int Permute(int hash)
+        {
+            // We can override the secondary hash permutation in the options constructor.
+            if(permute != null)
+                return permute(hash);
+
+            // Normally we use the non-repeating pseudo-random sequence.
+            return PseudoRandomSequence.Permute(hash);
+        }
+
         /// <summary>
         /// Stores value against the specified hash. Multiple values can be stored
         /// against the same hash (it does not overwrite).
@@ -83,7 +95,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         public virtual bool TryStore(int hash, T value, out int index)
         {
             int slotA = slotFromHash(hash);
-            int slotB = slotFromHash(PseudoRandomSequence.Permute(hash));
+            int slotB = slotFromHash(Permute(hash));
 
             // For a given block of array positions, we store the maximum known
             // probe depth. This avoids searching the whole array.
@@ -136,9 +148,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
             // Keep track of the longest linear search we've had to do
             // so far for this chunk.Never let this get bigger than the capacity
             // of the array as we would end up in an infinite loop.
-            if(probeDepth <= cursor.MoveCount && probeDepth < this.capacity)
+            if(cursor.MoveCount > probeDepth)
             {
-                probeDepth = cursor.MoveCount + 1;
+                probeDepth = cursor.MoveCount;
             }
 
             // Return the position we stored the item at.
@@ -202,6 +214,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
         private ref int probeDepthFromSlot(int position) => ref this.chunkProbeDepth[chunkFromSlot(position)];
 
+        public int ProbeDepth(int hash) => probeDepthFromSlot(slotFromHash(hash));
+
         /// <summary>
         /// Enumerate items stored under the given hash. Note that
         /// due to hash collisions, you will also be presented with items which do
@@ -213,7 +227,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         {
             // Calculate the first spot our result could be in
             int slotA = slotFromHash(hash);
-            int slotB = slotFromHash(PseudoRandomSequence.Permute(hash));
+            int slotB = slotFromHash(Permute(hash));
 
             // Calculate how far the maximum search depth is
             int probeDepth = probeDepthFromSlot(slotA);

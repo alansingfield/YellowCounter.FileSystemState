@@ -290,5 +290,126 @@ namespace PathReduxTests.PathRedux
             }
         }
 
+
+        [TestMethod]
+        public void HashBucket2ChunkLimitNoDualHash()
+        {
+            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            {
+                Capacity = 8,
+                ChunkSize = 2,
+                Permute = x => x        // Don't do dual hashing
+            });
+
+            var indices = new int[8];
+
+            hb.TryStore(0, 100m, out indices[0]).ShouldBe(true);
+            hb.TryStore(0, 101m, out indices[1]).ShouldBe(true);
+            hb.TryStore(0, 102m, out indices[2]).ShouldBe(true);
+            hb.TryStore(0, 103m, out indices[3]).ShouldBe(true);
+            hb.TryStore(6, 104m, out indices[4]).ShouldBe(true);
+            hb.TryStore(6, 105m, out indices[5]).ShouldBe(true);
+            hb.TryStore(6, 106m, out indices[6]).ShouldBe(true);
+            hb.TryStore(6, 107m, out indices[7]).ShouldBe(true);
+            
+            hb.TryStore(0, 108m).ShouldBe(false);
+
+            //ShouldlyTest.Gen(indices, nameof(indices));
+
+            {
+                indices.ShouldNotBeNull();
+                indices.Count().ShouldBe(8);
+                indices[0].ShouldBe(0);
+                indices[1].ShouldBe(1);
+                indices[2].ShouldBe(2);
+                indices[3].ShouldBe(3);
+                indices[4].ShouldBe(6);
+                indices[5].ShouldBe(7);
+                indices[6].ShouldBe(4);
+                indices[7].ShouldBe(5);
+            }
+
+            var result = hb.ToList();
+
+            //ShouldlyTest.Gen(result, nameof(result));
+
+            {
+                result.ShouldNotBeNull();
+                result.Count().ShouldBe(8);
+                result[0].ShouldBe(100m);
+                result[1].ShouldBe(101m);
+                result[2].ShouldBe(102m);
+                result[3].ShouldBe(103m);
+                result[4].ShouldBe(106m);
+                result[5].ShouldBe(107m);
+                result[6].ShouldBe(104m);
+                result[7].ShouldBe(105m);
+            }
+        }
+
+        [TestMethod]
+        public void HashBucket2ChunkLimitPermute()
+        {
+            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            {
+                Capacity = 8,
+                ChunkSize = 2,
+                Permute = x => 7 - x
+            });
+
+            var indices = new int[8];
+
+            hb.TryStore(0, 100m, out indices[0]).ShouldBe(true);
+            hb.TryStore(0, 101m, out indices[1]).ShouldBe(true);
+            hb.TryStore(0, 102m, out indices[2]).ShouldBe(true);
+            hb.TryStore(0, 103m, out indices[3]).ShouldBe(true);
+            hb.TryStore(6, 104m, out indices[4]).ShouldBe(true);
+            hb.TryStore(6, 105m, out indices[5]).ShouldBe(true);
+            hb.TryStore(6, 106m, out indices[6]).ShouldBe(true);
+            hb.TryStore(6, 107m, out indices[7]).ShouldBe(true);
+
+            hb.TryStore(0, 108m).ShouldBe(false);
+
+            //ShouldlyTest.Gen(indices, nameof(indices));
+            
+            {
+                indices.ShouldNotBeNull();
+                indices.Count().ShouldBe(8);
+                indices[0].ShouldBe(0);
+                indices[1].ShouldBe(7);
+                indices[2].ShouldBe(1);
+                indices[3].ShouldBe(2);
+                indices[4].ShouldBe(6);
+                indices[5].ShouldBe(3);
+                indices[6].ShouldBe(4);
+                indices[7].ShouldBe(5);
+            }
+
+            var result = hb.ToList();
+
+            //ShouldlyTest.Gen(result, nameof(result));
+
+            {
+                result.ShouldNotBeNull();
+                result.Count().ShouldBe(8);
+                result[0].ShouldBe(100m);
+                result[1].ShouldBe(102m);
+                result[2].ShouldBe(103m);
+                result[3].ShouldBe(105m);
+                result[4].ShouldBe(106m);
+                result[5].ShouldBe(107m);
+                result[6].ShouldBe(104m);
+                result[7].ShouldBe(101m);
+            }
+
+            // For hash zero, we've used the first 4 possible slots
+            hb.ProbeDepth(0).ShouldBe(4);
+
+            // Which means for hash 6 it has to probe the remainder.
+            // (worst case scenario)
+            hb.ProbeDepth(6).ShouldBe(8);
+        }
+
+
     }
 }
