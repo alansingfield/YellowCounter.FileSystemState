@@ -20,14 +20,45 @@ namespace YellowCounter.FileSystemState.HashedStorage
             hashBucket = new HashBucket2<TValue>(options ?? new SetByRefOptions()
             {
                 Capacity = 256,
-                //LinearSearchLimit = 16
             });
         }
 
+        /// <summary>
+        /// Calculates the key of a given item. Must be deterministic.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         protected abstract TKey GetKey(in TValue item);
+
+        /// <summary>
+        /// Gets the hash for a given key. Note that the default implementation
+        /// of GetHashCode() gives a poor quality result for structs, it is
+        /// recommended to write a custom function using HashCode.Combine().
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns>integer hashcode</returns>
         protected abstract int GetHashOfKey(in TKey key);
+
+        /// <summary>
+        /// Comparison function, should return true if <paramref name="item"/>
+        /// matches <paramref name="key"/>. This will be called during most
+        /// retrieval operations (including indexing with []) to discard the
+        /// hash collisions.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
         protected abstract bool Match(in TValue item, in TKey key);
 
+        public int GetHashOfValue(in TValue item) => GetHashOfKey(GetKey(item));
+
+        /// <summary>
+        /// Adds a new item to the set. If the key is already in the set,
+        /// an ArgumentException will be raised.
+        /// </summary>
+        /// <param name="key">Unique key to store against</param>
+        /// <param name="value">Value to store</param>
+        /// <returns>Reference to the added item within this set</returns>
         public ref TValue Add(TKey key, TValue value)
         {
             int hash = GetHashOfKey(key);
@@ -37,6 +68,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
             return ref tryStoreInternal(value, hash);
         }
+
 
         private ref TValue tryStoreInternal(TValue value, int hash)
         {
@@ -54,17 +86,14 @@ namespace YellowCounter.FileSystemState.HashedStorage
         }
 
 
-
-        //public abstract void OnUpdating(TKey key, context, ref TValue value);
-        //public abstract TValue OnCreate(TKey key, context);
-
         /// <summary>
         /// Finds the item with the given key. If the item can't be found, calls
         /// valueFactory() to create a new item, and stores this under the key
         /// provided.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="valueFactory"></param>
+        /// <param name="key">Key to search for.</param>
+        /// <param name="valueFactory">Creates the <typeparamref name="TValue"/>
+        /// if not found in existing set</param>
         /// <returns>Reference to the found or newly created item.</returns>
         public ref TValue GetOrAdd(TKey key, Func<TValue> valueFactory)
         {
@@ -72,25 +101,46 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
             foreach(ref TValue item in hashBucket.Retrieve(hash))
             {
-                if(Match(item, key))
+                if(hashAndMatch(key, hash, item))
+                {
                     return ref item;
+                }
             }
 
+            // Not found, call the factory method to create the item.
             TValue newItem = valueFactory();
 
             return ref tryStoreInternal(newItem, hash);
         }
 
+        private bool hashAndMatch(TKey key, int hash, TValue item)
+        {
+            // First compare by hash, as the HashBucket can give us items
+            // which do not match the hash. Then run the Match() function
+            // to avoid hash collisions and identify the correct item.
+
+            return GetHashOfValue(item) == hash && Match(item, key);
+        }
+
+
+        /// <summary>
+        /// Calculates the Key of the argument, and then looks for an existing
+        /// item which matches that key. If it finds one, the old item is
+        /// overwritten in-place with the new one. If it does not find the
+        /// item the supplied value is added to the Set.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns>Reference to the item within this ReferenceSet</returns>
         public ref TValue AddOrReplace(TValue value)
         {
             TKey key = GetKey(value);
             int hash = GetHashOfKey(key);
 
             // If the key is already in our HashBucket, overwrite the slot
-            // with the supplied value
+            // with the supplied value.
             foreach(ref TValue item in hashBucket.Retrieve(hash))
             {
-                if(Match(item, key))
+                if(hashAndMatch(key, hash, item))
                 {
                     // Copy-write the supplied value into our array
                     item = value;
@@ -113,7 +163,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
                 foreach(ref TValue item in hashBucket.Retrieve(hash))
                 {
-                    if(Match(item, key))
+                    if(hashAndMatch(key, hash, item))
                         return ref item;
                 }
 
@@ -127,7 +177,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
             foreach(ref TValue item in hashBucket.Retrieve(hash))
             {
-                if(Match(item, key))
+                if(hashAndMatch(key, hash, item))
                 {
                     result = ref item;
                     return true;
@@ -142,7 +192,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
             foreach(ref TValue item in hashBucket.Retrieve(hash))
             {
-                if(Match(item, key))
+                if(hashAndMatch(key, hash, item))
                 {
                     hashBucket.Delete(ref item);
                     return true;
@@ -167,7 +217,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         {
             foreach(ref TValue item in hashBucket.Retrieve(hash))
             {
-                if(Match(item, key))
+                if(hashAndMatch(key, hash, item))
                 {
                     return true;
                 }
@@ -213,10 +263,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// </summary>
         public int Capacity => hashBucket.Capacity;
         /// <summary>
-        /// Maximum possible linear search we will undertake
-        /// </summary>
-        //public int LinearSearchLimit => hashBucket.LinearSearchLimit;
-        /// <summary>
         /// Number of slots we are using at the moment (including soft deleted)
         /// </summary>
         public int Occupancy => hashBucket.Occupancy;
@@ -228,33 +274,3 @@ namespace YellowCounter.FileSystemState.HashedStorage
 }
 
 
-
-
-
-//public void CreateOrUpdate(TKey key, TContext context)
-//{
-//    int hash = GetHashOfKey(key);
-
-//    foreach(ref TValue item in hashBucket.Retrieve(hash))
-//    {
-//        if(Match(item, key))
-//        {
-//            OnUpdating(key, context, ref item);
-//            return;
-//        }
-//    }
-
-//    // Item not found, so call
-//    TValue newItem = OnCreate(key, context);
-
-//    if(hashBucket.TryStore(hash, newItem))
-//        return;
-
-//    if(rebuildLookup(headroom: 1, in newItem, out int position))
-//        return;
-
-//    // Theoretically this shouldn't happen, but...
-//    // We've got a backstop which increases both the capacity and the linear search
-//    // limit - what more could we do? Let's find out...
-//    throw new Exception("Too many hash collisions.");
-//}
