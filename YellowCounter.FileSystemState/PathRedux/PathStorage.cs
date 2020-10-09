@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using YellowCounter.FileSystemState.HashCodes;
+using YellowCounter.FileSystemState.HashedStorage;
 
 namespace YellowCounter.FileSystemState.PathRedux
 {
@@ -23,7 +24,7 @@ namespace YellowCounter.FileSystemState.PathRedux
     public class PathStorage : IPathStorage
     {
         private HashedCharBuffer buf;
-        private HashBucket<int> buckets;
+        private HashBucket2<int> buckets;
         private List<Entry> entries;
         private const int Root = -1;    // The root entry's ParentIdx is set to this.
 
@@ -38,12 +39,14 @@ namespace YellowCounter.FileSystemState.PathRedux
                 NewHashCode = options.NewHashCode,
                 InitialCharCapacity = options.InitialCharCapacity,
                 InitialHashCapacity = options.InitialHashCapacity,
-                LinearSearchLimit = options.LinearSearchLimit
+                //LinearSearchLimit = options.LinearSearchLimit
             });
 
-            buckets = new HashBucket<int>(
-                options.HashBucketInitialCapacity, 
-                options.HashBucketMaxChain);
+            buckets = new HashBucket2<int>(new HashBucket2Options()
+            {
+                Capacity = options.InitialHashCapacity,
+                ChunkSize = 32,
+            });
 
             entries = new List<Entry>();
         }
@@ -105,7 +108,7 @@ namespace YellowCounter.FileSystemState.PathRedux
             // We need to loop through each until we find one which fits.
             foreach(var opts in buckets.SizeOptions(headroom: 1))
             {
-                var replacement = new HashBucket<int>(opts);
+                var replacement = new HashBucket2<int>(opts);
 
                 // Re-hash all our existing entries and try storing into the replacement 
                 // hashbucket.

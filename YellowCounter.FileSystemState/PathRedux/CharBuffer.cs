@@ -54,7 +54,23 @@ namespace YellowCounter.FileSystemState.PathRedux
             return result;
         }
 
-        public int Match(ReadOnlySpan<char> arg, ReadOnlySpan<int> indices)
+        public int Match(ReadOnlySpan<char> arg, int index)
+        {
+            var bufSpan = buffer.Span;
+
+            if(bufSpan.Slice(index, arg.Length).SequenceEqual(arg))
+            {
+                // Check for null terminator so we don't match to a
+                // longer string.
+                if(bufSpan[index + arg.Length] == '\0')
+                    return index;
+            }
+
+            // -1 for not found.
+            return -1;
+        }
+
+        public int Match(ReadOnlySpan<char> arg, IEnumerable<int> indices)
         {
             var bufSpan = buffer.Span;
 
@@ -73,11 +89,11 @@ namespace YellowCounter.FileSystemState.PathRedux
             return -1;
         }
 
-        public ReadOnlySpan<char> Retrieve(int index)
+        public ReadOnlySpan<char> Retrieve(int pos)
         {
             var bufSpan = buffer.Span;
 
-            var begin = bufSpan.Slice(index);
+            var begin = bufSpan.Slice(pos);
 
             int len = begin.IndexOf('\0');
 

@@ -10,6 +10,5 @@ namespace YellowCounter.FileSystemState.PathRedux
         public Func<IHashCode> NewHashCode { get; set; }
         public int InitialCharCapacity { get; set; }
         public int InitialHashCapacity { get; set; }
-        public int LinearSearchLimit { get; set; }
     }
 }

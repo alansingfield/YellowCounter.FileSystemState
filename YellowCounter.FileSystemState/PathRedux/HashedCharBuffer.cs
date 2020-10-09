@@ -3,24 +3,28 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Text;
 using YellowCounter.FileSystemState.HashCodes;
+using YellowCounter.FileSystemState.HashedStorage;
 
 namespace YellowCounter.FileSystemState.PathRedux
 {
     public class HashedCharBuffer
     {
         private CharBuffer charBuffer;
-        private HashBucket<int> hashLookup;
+        private HashBucket2<int> hashLookup;
         private readonly Func<IHashCode> newHashCode;
 
         public HashedCharBuffer(HashedCharBufferOptions options)
         {
             charBuffer = new CharBuffer(options.InitialCharCapacity);
-            hashLookup = new HashBucket<int>(options.InitialHashCapacity, options.LinearSearchLimit);
+            hashLookup = new HashBucket2<int>(new HashBucket2Options()
+            {
+                Capacity = options.InitialHashCapacity,
+                ChunkSize = 32,
+            });
 
             this.newHashCode = options.NewHashCode;
         }
 
-        public int LinearSearchLimit => hashLookup.LinearSearchLimit;
         public int CharCapacity => charBuffer.Capacity;
         public int HashCapacity => hashLookup.Capacity;
 
@@ -73,8 +77,15 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         private int findByHash(int hash, ReadOnlySpan<char> text)
         {
-            var indices = hashLookup.Retrieve(hash);
-            return charBuffer.Match(text, indices);
+            foreach(var index in hashLookup.Retrieve(hash))
+            {
+                var position = charBuffer.Match(text, index);
+
+                if(position != -1)
+                    return position;
+            }
+
+            return -1;
         }
 
         private int hashSequence(ReadOnlySpan<char> text) => newHashCode().HashSequence(text);
@@ -94,7 +105,7 @@ namespace YellowCounter.FileSystemState.PathRedux
             foreach(var opts in hashLookup.SizeOptions(headroom: 1))
             {
                 // Create a replacement hash bucket of the new size
-                var replacement = new HashBucket<int>(opts);
+                var replacement = new HashBucket2<int>(opts);
 
                 // Populate the replacement with our existing data
                 foreach(var itm in charBuffer)

@@ -746,7 +746,7 @@ namespace PathReduxTests.PathRedux
                 }
             }
 
-            ShouldlyTest.Gen(result, nameof(result));
+            //ShouldlyTest.Gen(result, nameof(result));
 
             {
                 result.ShouldBe(new[] {
@@ -758,7 +758,7 @@ namespace PathReduxTests.PathRedux
                     "|    1400|    4.95|    3.06|    9.22|",
                     "|    1500|    6.28|    4.07|   11.88|",
                     "|    1600|    7.63|    5.19|   13.97|",
-                    "|    1750|   11.96|    9.20|   21.12|",
+                    "|    1700|    9.75|    7.13|   17.02|",
                     "|    1800|   14.43|   11.46|   24.10|",
                     "|    1900|   27.79|   23.78|   43.30|",
                     "|    2000|  382.67|  380.55|  380.05|",
