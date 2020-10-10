@@ -90,9 +90,9 @@ namespace YellowCounter.FileSystemState
             enumerator.Scan();
         }
 
-        public void Accept(ref FileSystemEntry fileSystemEntry)
+        public void Accept(in FileSystemEntry fileSystemEntry)
         {
-            _state.Mark(ref fileSystemEntry);
+            _state.Mark(in fileSystemEntry);
         }
 
         private void acceptChanges()
@@ -178,7 +178,7 @@ namespace YellowCounter.FileSystemState
 
             gatherChanges();
 
-            foreach(ref readonly var x in _state.AsSpan())
+            foreach(ref readonly var x in _state)
             {
                 if(x.Flags.HasFlag(FileStateFlags.Seen))
                 {

@@ -213,7 +213,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <param name="item"></param>
         public void Delete(ref T item)
         {
-            DeleteAt(PositionOf(ref item));
+            DeleteAt(IndexOf(ref item));
         }
 
         /// <summary>
@@ -222,7 +222,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// </summary>
         /// <param name="item">Reference to item</param>
         /// <returns>Integer position from 0..capacity-1</returns>
-        public int PositionOf(ref T item)
+        public int IndexOf(ref T item)
         {
             // Calculate the array index of item within mem
             return (int)Unsafe.ByteOffset(
@@ -230,12 +230,11 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 / this.sizeofT;
         }
 
-
-        private void deleteAtInternal(int position)
+        private void deleteAtInternal(int index)
         {
-            if(!softDeleted[position])
+            if(!softDeleted[index])
             {
-                softDeleted[position] = true;
+                softDeleted[index] = true;
                 this.usage--;
             }
         }

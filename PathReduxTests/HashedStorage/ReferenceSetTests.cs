@@ -44,8 +44,8 @@ namespace PathReduxTests.HashedStorage
         {
             var refset = new AbcReferenceSet();
 
-            ref var item0 = ref refset.GetOrAdd(101, () => new Abc(101) { Value = 1000m });
-            ref var item1 = ref refset.GetOrAdd(102, () => new Abc(102) { Value = 2000m });
+            ref var item0 = ref refset.Add(101, new Abc(101) { Value = 1000m });
+            ref var item1 = ref refset.Add(102, new Abc(102) { Value = 2000m });
 
             int idx = 0;
             foreach(ref var itm in refset)
@@ -69,8 +69,8 @@ namespace PathReduxTests.HashedStorage
         {
             var refset = new AbcReferenceSet();
 
-            refset.GetOrAdd(101, () => new Abc(101) { Value = 1000m });
-            refset.GetOrAdd(102, () => new Abc(102) { Value = 2000m });
+            refset.Add(101, new Abc(101) { Value = 1000m });
+            refset.Add(102, new Abc(102) { Value = 2000m });
 
             var copy = refset.ToArray();
 
@@ -94,8 +94,8 @@ namespace PathReduxTests.HashedStorage
         {
             var refset = new AbcReferenceSet();
 
-            refset.GetOrAdd(101, () => new Abc(101) { Value = 1000m });
-            refset.GetOrAdd(102, () => new Abc(102) { Value = 2000m });
+            refset.Add(101, new Abc(101) { Value = 1000m });
+            refset.Add(102, new Abc(102) { Value = 2000m });
 
             // Read an item by key
             ref var item101 = ref refset[101];
@@ -115,8 +115,8 @@ namespace PathReduxTests.HashedStorage
         {
             var refset = new AbcReferenceSet();
 
-            refset.GetOrAdd(101, () => new Abc(101) { Value = 1000m });
-            refset.GetOrAdd(102, () => new Abc(102) { Value = 2000m });
+            refset.Add(101, new Abc(101) { Value = 1000m });
+            refset.Add(102, new Abc(102) { Value = 2000m });
 
             Should.Throw(() =>
             {
@@ -129,8 +129,8 @@ namespace PathReduxTests.HashedStorage
         {
             var refset = new AbcReferenceSet();
 
-            refset.GetOrAdd(101, () => new Abc(101) { Value = 1000m });
-            ref var itm2 = ref refset.GetOrAdd(102, () => new Abc(102) { Value = 2000m });
+            refset.Add(101, new Abc(101) { Value = 1000m });
+            ref var itm2 = ref refset.Add(102, new Abc(102) { Value = 2000m });
 
             refset.Delete(ref itm2);
 

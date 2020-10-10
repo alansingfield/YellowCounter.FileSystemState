@@ -93,10 +93,16 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         private void storeHashInLookup(int hash, int pos)
         {
-            if(!hashLookup.TryStore(hash, pos))
+            if(((float)hashLookup.Usage / hashLookup.Capacity) < 0.8f)
             {
-                rebuildLookup();
+                if(hashLookup.TryStore(hash, pos))
+                    return;
             }
+         
+            rebuildLookup();
+
+            if(!hashLookup.TryStore(hash, pos))
+                throw new Exception("Unable to store in lookup");
         }
 
         private void rebuildLookup()

@@ -7,6 +7,6 @@ namespace YellowCounter.FileSystemState
 {
     public interface IAcceptFileSystemEntry
     {
-        void Accept(ref FileSystemEntry fileSystemEntry);
+        void Accept(in FileSystemEntry fileSystemEntry);
     }
 }

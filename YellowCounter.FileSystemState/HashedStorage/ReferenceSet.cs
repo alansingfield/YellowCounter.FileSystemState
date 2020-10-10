@@ -7,6 +7,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
 {
     public class SetByRefOptions : HashBucket2Options
     {
+        public int? FillFactor { get; set; }
     }
 
     public abstract class ReferenceSet<TKey, TValue> 
@@ -14,13 +15,26 @@ namespace YellowCounter.FileSystemState.HashedStorage
         where TKey: struct
     {
         private HashBucket2<TValue> hashBucket;
+        private float fillFactor;
+        private int usageLimit;
 
         public ReferenceSet(SetByRefOptions options = null)
         {
-            hashBucket = new HashBucket2<TValue>(options ?? new SetByRefOptions()
+            options ??= new SetByRefOptions()
             {
                 Capacity = 256,
-            });
+            };
+
+            hashBucket = new HashBucket2<TValue>(options);
+
+            this.fillFactor = (options.FillFactor ?? 80) / 100.0f;
+
+            refreshUsageLimit();
+        }
+
+        private void refreshUsageLimit()
+        {
+            this.usageLimit = (int)(hashBucket.Capacity * this.fillFactor);
         }
 
         /// <summary>
@@ -59,12 +73,12 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <param name="key">Unique key to store against</param>
         /// <param name="value">Value to store</param>
         /// <returns>Reference to the added item within this set</returns>
-        public ref TValue Add(TKey key, TValue value)
+        public ref TValue Add(in TKey key, in TValue value)
         {
             int hash = GetHashOfKey(key);
 
             if(containsKeyInternal(key, hash))
-                throw new ArgumentException("The key is already in the set, use GetOrAdd/AddOrReplace instead", nameof(key));
+                throw new ArgumentException("The key is already in the set", nameof(key));
 
             return ref tryStoreInternal(value, hash);
         }
@@ -72,9 +86,13 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
         private ref TValue tryStoreInternal(TValue value, int hash)
         {
-            if(hashBucket.TryStore(hash, value, out int position))
+            // make sure we have not exceeded the fillfactor limit.
+            if(hashBucket.Usage < usageLimit)
             {
-                return ref hashBucket[position];
+                if(hashBucket.TryStore(hash, value, out int position))
+                {
+                    return ref hashBucket[position];
+                }
             }
 
             // Rebuild the HashBucket and store the new item in there. This will
@@ -95,7 +113,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <param name="valueFactory">Creates the <typeparamref name="TValue"/>
         /// if not found in existing set</param>
         /// <returns>Reference to the found or newly created item.</returns>
-        public ref TValue GetOrAdd(TKey key, Func<TValue> valueFactory)
+        public ref TValue GetOrAdd<TContext>(TKey key, Func<TContext, TValue> valueFactory, TContext context)
         {
             int hash = GetHashOfKey(key);
 
@@ -108,12 +126,12 @@ namespace YellowCounter.FileSystemState.HashedStorage
             }
 
             // Not found, call the factory method to create the item.
-            TValue newItem = valueFactory();
+            TValue newItem = valueFactory(context);
 
             return ref tryStoreInternal(newItem, hash);
         }
 
-        private bool hashAndMatch(TKey key, int hash, TValue item)
+        private bool hashAndMatch(TKey key, int hash, in TValue item)
         {
             // First compare by hash, as the HashBucket can give us items
             // which do not match the hash. Then run the Match() function
@@ -131,7 +149,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// </summary>
         /// <param name="value"></param>
         /// <returns>Reference to the item within this ReferenceSet</returns>
-        public ref TValue AddOrReplace(TValue value)
+        public ref TValue AddOrReplace(in TValue value)
         {
             TKey key = GetKey(value);
             int hash = GetHashOfKey(key);
@@ -171,7 +189,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
             }
         }
 
-        public bool TryGet(in TKey key, ref TValue result)
+        public int IndexOf(in TKey key)
         {
             int hash = GetHashOfKey(key);
 
@@ -179,12 +197,31 @@ namespace YellowCounter.FileSystemState.HashedStorage
             {
                 if(hashAndMatch(key, hash, item))
                 {
-                    result = ref item;
-                    return true;
+                    return hashBucket.IndexOf(ref item);
                 }
             }
-            return false;
+            return -1;
         }
+
+        public ref TValue ElementAt(int index) => ref hashBucket[index];
+
+        //TValue dummy;
+
+        //public ref TValue TryGet(in TKey key, out bool success)
+        //{
+        //    int hash = GetHashOfKey(key);
+
+        //    foreach(ref TValue item in hashBucket.Retrieve(hash))
+        //    {
+        //        if(hashAndMatch(key, hash, item))
+        //        {
+        //            success = true;
+        //            return ref item;
+        //        }
+        //    }
+        //    success = false;
+        //    return ref dummy;
+        //}
 
         public bool Delete(in TKey key)
         {
@@ -252,6 +289,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
                 // We've managed to store everything, REPLACE the old lookup with a new one.
                 this.hashBucket = replacement;
+                refreshUsageLimit();
                 return;
             }
 

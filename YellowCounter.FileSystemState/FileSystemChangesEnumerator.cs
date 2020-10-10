@@ -41,7 +41,7 @@ namespace YellowCounter.FileSystemState
 
         protected override object TransformEntry(ref FileSystemEntry entry)
         {
-            acceptFileSystemEntry.Accept(ref entry);
+            acceptFileSystemEntry.Accept(in entry);
 
             return null;
         }

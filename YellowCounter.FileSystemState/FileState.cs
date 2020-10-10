@@ -22,7 +22,6 @@ namespace YellowCounter.FileSystemState
         None = 0,
         Seen = 1,
         Created = 2,
-        Changed = 4,
-        Doomed = 8,
+        Changed = 4
     }
 }
