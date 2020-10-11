@@ -14,7 +14,7 @@ namespace YellowCounter.FileSystemState
             this.hashFunction = options.HashFunction;
         }
 
-        protected override int GetHashOfKey(in (int, int) key)
+        protected override int GetHashOfKey((int, int) key)
         {
             // For testing we override the hashfunction with a deterministic one.
             // For real usage we want the .NET one.
@@ -24,12 +24,12 @@ namespace YellowCounter.FileSystemState
             return key.GetHashCode();
         }
 
-        protected override (int, int) GetKey(in FileState item)
+        protected override (int, int) GetKey(FileState item)
         {
             return (item.DirectoryRef, item.FilenameRef);
         }
 
-        protected override bool Match(in FileState item, in (int, int) key)
+        protected override bool Match(FileState item, (int, int) key)
         {
             return (item.DirectoryRef, item.FilenameRef) == key;
 

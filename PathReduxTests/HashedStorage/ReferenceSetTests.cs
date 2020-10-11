@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime;
 using System.Text;
 using UnitTestCoder.Core.Literal;
 using UnitTestCoder.Shouldly.Gen;
@@ -29,14 +30,14 @@ namespace PathReduxTests.HashedStorage
 
         private class AbcReferenceSet : ReferenceSet<int, Abc>
         {
-            protected override int GetHashOfKey(in int key)
+            protected override int GetHashOfKey(int key)
             {
                 return key / 100;
             }
 
-            protected override int GetKey(in Abc item) => item.Key;
+            protected override int GetKey(Abc item) => item.Key;
 
-            protected override bool Match(in Abc item, in int key) => item.Key == key;
+            protected override bool Match(Abc item, int key) => item.Key == key;
         }
 
         [TestMethod]
@@ -138,6 +139,36 @@ namespace PathReduxTests.HashedStorage
             {
                 ref var itm = ref refset[102];
             }, typeof(ArgumentException)).Message.ShouldBe("Key was not found in the set (Parameter 'key')");
+        }
+
+        [TestMethod]
+        public void ReferenceSetResizing()
+        {
+            var random = new Random(Seed: 12345);
+
+            var refset = new AbcReferenceSet();
+
+            //for(int i = 0; i < 30000; i++)
+            //{
+            //    refset.Add(i, new Abc(i));
+            //}
+
+            for(int j = 0; j < 30; j++)
+            {
+                refset.Resize(40000);
+            }
+
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+            GC.Collect();
+
+            for(int j = 0; j < 30; j++)
+            {
+                refset.Resize(40000);
+            }
+
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+            GC.Collect();
+
         }
 
     }

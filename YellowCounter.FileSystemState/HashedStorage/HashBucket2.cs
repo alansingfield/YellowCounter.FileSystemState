@@ -17,7 +17,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
     /// </summary>
     public partial class HashBucket2<T>
     {
-        private T[] mem;
+        private readonly T[] mem;
         private readonly int capacity;
         private readonly BitArray elementsInUse;
         private readonly BitArray softDeleted;

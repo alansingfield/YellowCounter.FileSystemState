@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using YellowCounter.FileSystemState.HashedStorage;
 
 namespace YellowCounter.FileSystemState.HashedStorage
@@ -42,7 +40,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        protected abstract TKey GetKey(in TValue item);
+        protected abstract TKey GetKey(TValue item);
 
         /// <summary>
         /// Gets the hash for a given key. Note that the default implementation
@@ -51,7 +49,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// </summary>
         /// <param name="key"></param>
         /// <returns>integer hashcode</returns>
-        protected abstract int GetHashOfKey(in TKey key);
+        protected abstract int GetHashOfKey(TKey key);
 
         /// <summary>
         /// Comparison function, should return true if <paramref name="item"/>
@@ -62,9 +60,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <param name="item"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        protected abstract bool Match(in TValue item, in TKey key);
+        protected abstract bool Match(TValue item, TKey key);
 
-        public int GetHashOfValue(in TValue item) => GetHashOfKey(GetKey(item));
+        public int GetHashOfValue(TValue item) => GetHashOfKey(GetKey(item));
 
         /// <summary>
         /// Adds a new item to the set. If the key is already in the set,
@@ -73,7 +71,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <param name="key">Unique key to store against</param>
         /// <param name="value">Value to store</param>
         /// <returns>Reference to the added item within this set</returns>
-        public ref TValue Add(in TKey key, in TValue value)
+        public ref TValue Add(TKey key, TValue value)
         {
             int hash = GetHashOfKey(key);
 
@@ -131,7 +129,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
             return ref tryStoreInternal(newItem, hash);
         }
 
-        private bool hashAndMatch(TKey key, int hash, in TValue item)
+        private bool hashAndMatch(TKey key, int hash, TValue item)
         {
             // First compare by hash, as the HashBucket can give us items
             // which do not match the hash. Then run the Match() function
@@ -149,7 +147,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// </summary>
         /// <param name="value"></param>
         /// <returns>Reference to the item within this ReferenceSet</returns>
-        public ref TValue AddOrReplace(in TValue value)
+        public ref TValue AddOrReplace(TValue value)
         {
             TKey key = GetKey(value);
             int hash = GetHashOfKey(key);
@@ -189,7 +187,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
             }
         }
 
-        public int IndexOf(in TKey key)
+        public int IndexOf(TKey key)
         {
             int hash = GetHashOfKey(key);
 
@@ -223,7 +221,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         //    return ref dummy;
         //}
 
-        public bool Delete(in TKey key)
+        public bool Delete(TKey key)
         {
             int hash = GetHashOfKey(key);
 
@@ -243,7 +241,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
             hashBucket.Delete(ref value);
         }
 
-        public bool ContainsKey(in TKey key)
+        public bool ContainsKey(TKey key)
         {
             int hash = GetHashOfKey(key);
 
@@ -268,7 +266,28 @@ namespace YellowCounter.FileSystemState.HashedStorage
         }
 
 
-        private void rebuildLookup(int headroom, in TValue newItem, out int position)
+        public void Resize(int newCapacity)
+        {
+            var replacement = new HashBucket2<TValue>(new HashBucket2Options()
+            {
+                Capacity = newCapacity,
+                ChunkSize = hashBucket.ChunkSize,
+                Permute = hashBucket.Permute
+            });
+
+            Populate the replacement with our existing data
+            foreach(ref var itm in hashBucket)
+            {
+                if(!replacement.TryStore(GetHashOfKey(GetKey(itm)), itm))
+                    throw new Exception("Unable to resize");
+            }
+
+            this.hashBucket = replacement;
+            
+            refreshUsageLimit();
+        }
+
+        private void rebuildLookup(int headroom, TValue newItem, out int position)
         {
             // Given the headroom we need, get a list of possible sizes to try for the lookup.
             foreach(var opts in hashBucket.SizeOptions(headroom))
