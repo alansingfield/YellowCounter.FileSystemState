@@ -15,9 +15,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
     /// A hash bucket using the Open Addressing scheme. This is a fixed capacity
     /// implementation.
     /// </summary>
-    public partial class HashBucket2<T>
+    public partial class HashBucket2<T> : IDisposable
     {
-        private readonly T[] mem;
+        private T[] mem;
         private readonly int capacity;
         private readonly BitArray elementsInUse;
         private readonly BitArray softDeleted;
@@ -28,6 +28,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         private readonly int chunkSize;
         private int numChunks;
         private int[] chunkProbeDepth;
+        private bool disposedValue;
 
         /// <summary>
         /// Creates a hash bucket using Open Addresssing. This is a fixed size
@@ -40,7 +41,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
             this.permute = options.Permute;
             this.chunkSize = options.ChunkSize;
 
-            this.mem = new T[this.capacity];
+            this.mem = ArrayPool<T>.Shared.Rent(this.capacity);
+
             this.elementsInUse = new BitArray(this.Capacity);
             this.softDeleted = new BitArray(this.Capacity);
 
@@ -351,6 +353,35 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 0,                  // Start at the beginning
                 scanLimit,          // All the elements
                 capacity);          // Enumerate to the end.
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if(!disposedValue)
+            {
+                if(disposing)
+                {
+                    ArrayPool<T>.Shared.Return(this.mem);
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~HashBucket2()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

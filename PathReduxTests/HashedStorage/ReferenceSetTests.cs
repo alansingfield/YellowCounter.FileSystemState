@@ -158,16 +158,10 @@ namespace PathReduxTests.HashedStorage
                 refset.Resize(40000);
             }
 
-            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-            GC.Collect();
-
             for(int j = 0; j < 30; j++)
             {
                 refset.Resize(40000);
             }
-
-            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-            GC.Collect();
 
         }
 

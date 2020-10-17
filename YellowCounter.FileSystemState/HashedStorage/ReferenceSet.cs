@@ -275,13 +275,14 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 Permute = hashBucket.Permute
             });
 
-            Populate the replacement with our existing data
+            // Populate the replacement with our existing data
             foreach(ref var itm in hashBucket)
             {
                 if(!replacement.TryStore(GetHashOfKey(GetKey(itm)), itm))
                     throw new Exception("Unable to resize");
             }
 
+            this.hashBucket.Dispose();
             this.hashBucket = replacement;
             
             refreshUsageLimit();
@@ -307,7 +308,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
                     continue;
 
                 // We've managed to store everything, REPLACE the old lookup with a new one.
+                this.hashBucket.Dispose();
                 this.hashBucket = replacement;
+
                 refreshUsageLimit();
                 return;
             }
