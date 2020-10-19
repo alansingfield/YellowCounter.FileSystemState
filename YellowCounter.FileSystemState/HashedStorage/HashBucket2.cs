@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
+using YellowCounter.FileSystemState.Bits;
 using YellowCounter.FileSystemState.HashedStorage;
 
 namespace YellowCounter.FileSystemState.HashedStorage
@@ -19,8 +20,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
     {
         private T[] mem;
         private readonly int capacity;
-        private readonly BitArray elementsInUse;
-        private readonly BitArray softDeleted;
+        private readonly BitArray64 elementsInUse;
+        private readonly BitArray64 softDeleted;
         private readonly int sizeofT;
         private int occupancy;
         private int usage;
@@ -43,8 +44,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
             this.mem = ArrayPool<T>.Shared.Rent(this.capacity);
 
-            this.elementsInUse = new BitArray(this.Capacity);
-            this.softDeleted = new BitArray(this.Capacity);
+            this.elementsInUse = new BitArray64(this.Capacity);
+            this.softDeleted = new BitArray64(this.Capacity);
 
             this.occupancy = 0;
             this.usage = 0;

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using YellowCounter.FileSystemState.Bits;
 
 namespace YellowCounter.FileSystemState.HashedStorage
 {
@@ -12,13 +13,13 @@ namespace YellowCounter.FileSystemState.HashedStorage
             private DualCursor cursor;
 
             private readonly T[] mem;
-            private readonly BitArray elementsInUse;
-            private readonly BitArray softDeleted;
+            private readonly BitArray64 elementsInUse;
+            private readonly BitArray64 softDeleted;
 
             public DualEnumerator(
                 T[] mem,
-                BitArray elementsInUse,
-                BitArray softDeleted,
+                BitArray64 elementsInUse,
+                BitArray64 softDeleted,
                 int startIndexA,
                 int startIndexB,
                 int scanLimit,

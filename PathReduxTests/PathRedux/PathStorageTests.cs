@@ -19,10 +19,10 @@ namespace PathReduxTests.PathRedux
             {
                 NewHashCode = () => new DeterministicHashCode(),
                 InitialCharCapacity = 4,
-                InitialHashCapacity = 2,
+                InitialHashCapacity = 16,
                 LinearSearchLimit = 128,
                 HashBucketMaxChain = 128,
-                HashBucketInitialCapacity = 2,
+                HashBucketInitialCapacity = 10,
             });
 
             var results = new List<int>();
@@ -48,10 +48,10 @@ namespace PathReduxTests.PathRedux
             {
                 NewHashCode = () => new DeterministicHashCode(),
                 InitialCharCapacity = 4,
-                InitialHashCapacity = 2,
+                InitialHashCapacity = 16,
                 LinearSearchLimit = 128,
                 HashBucketMaxChain = 128,
-                HashBucketInitialCapacity = 2,
+                HashBucketInitialCapacity = 10,
             });
 
             var results = new List<int>();
