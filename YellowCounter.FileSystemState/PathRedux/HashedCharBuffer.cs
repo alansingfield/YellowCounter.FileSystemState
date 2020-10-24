@@ -10,13 +10,13 @@ namespace YellowCounter.FileSystemState.PathRedux
     public class HashedCharBuffer
     {
         private CharBuffer charBuffer;
-        private HashBucket2<int> hashLookup;
+        private HashBucket<int> hashLookup;
         private readonly Func<IHashCode> newHashCode;
 
         public HashedCharBuffer(HashedCharBufferOptions options)
         {
             charBuffer = new CharBuffer(options.InitialCharCapacity);
-            hashLookup = new HashBucket2<int>(new HashBucket2Options()
+            hashLookup = new HashBucket<int>(new HashBucketOptions()
             {
                 Capacity = options.InitialHashCapacity,
                 ChunkSize = 32,
@@ -111,7 +111,7 @@ namespace YellowCounter.FileSystemState.PathRedux
             foreach(var opts in hashLookup.SizeOptions(headroom: 1))
             {
                 // Create a replacement hash bucket of the new size
-                var replacement = new HashBucket2<int>(opts);
+                var replacement = new HashBucket<int>(opts);
 
                 // Populate the replacement with our existing data
                 foreach(var itm in charBuffer)

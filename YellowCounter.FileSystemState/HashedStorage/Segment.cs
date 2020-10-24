@@ -4,7 +4,7 @@ using System.Text;
 
 namespace YellowCounter.FileSystemState.HashedStorage
 {
-    public partial class HashBucket2<T>
+    public partial class HashBucket<T>
     {
         public ref struct Segment
         {

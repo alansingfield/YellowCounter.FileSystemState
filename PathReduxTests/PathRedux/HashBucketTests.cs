@@ -11,12 +11,12 @@ using YellowCounter.FileSystemState.HashedStorage;
 namespace PathReduxTests.PathRedux
 {
     [TestClass]
-    public class HashBucket2Tests
+    public class HashBucketTests
     {
         [TestMethod]
-        public void HashBucket2StorageExactCapacity()
+        public void HashBucketStorageExactCapacity()
         {
-            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            var hb = new HashBucket<decimal>(new HashBucketOptions()
             {
                 Capacity = 4,
                 //LinearSearchLimit = 4
@@ -40,9 +40,9 @@ namespace PathReduxTests.PathRedux
         }
 
         [TestMethod]
-        public void HashBucket2StorageWraparound()
+        public void HashBucketStorageWraparound()
         {
-            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            var hb = new HashBucket<decimal>(new HashBucketOptions()
             {
                 Capacity = 4,
                 //LinearSearchLimit = 4
@@ -66,9 +66,9 @@ namespace PathReduxTests.PathRedux
         }
 
         [TestMethod]
-        public void HashBucket2StorageOverCapacity()
+        public void HashBucketStorageOverCapacity()
         {
-            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            var hb = new HashBucket<decimal>(new HashBucketOptions()
             {
                 Capacity = 4,
                 //LinearSearchLimit = 4
@@ -82,9 +82,9 @@ namespace PathReduxTests.PathRedux
         }
 
         //[TestMethod]
-        //public void HashBucket2StorageTooManyHashCollisions()
+        //public void HashBucketStorageTooManyHashCollisions()
         //{
-        //    var hb = new HashBucket2<decimal>(new HashBucket2Options()
+        //    var hb = new HashBucket<decimal>(new HashBucketOptions()
         //    {
         //        Capacity = 4,
         //        //LinearSearchLimit = 2
@@ -103,9 +103,9 @@ namespace PathReduxTests.PathRedux
         //}
 
         [TestMethod]
-        public void HashBucket2RetrievalWraparound()
+        public void HashBucketRetrievalWraparound()
         {
-            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            var hb = new HashBucket<decimal>(new HashBucketOptions()
             {
                 Capacity = 4,
                 //LinearSearchLimit = 2
@@ -130,9 +130,9 @@ namespace PathReduxTests.PathRedux
         }
 
         [TestMethod]
-        public void HashBucket2Delete()
+        public void HashBucketDelete()
         {
-            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            var hb = new HashBucket<decimal>(new HashBucketOptions()
             {
                 Capacity = 4,
                 //LinearSearchLimit = 4
@@ -173,9 +173,9 @@ namespace PathReduxTests.PathRedux
         }
 
         [TestMethod]
-        public void HashBucket2RetrieveByRef()
+        public void HashBucketRetrieveByRef()
         {
-            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            var hb = new HashBucket<decimal>(new HashBucketOptions()
             {
                 Capacity = 4,
                 //LinearSearchLimit = 4
@@ -215,9 +215,9 @@ namespace PathReduxTests.PathRedux
         }
 
         [TestMethod]
-        public void HashBucket2DeleteByRef()
+        public void HashBucketDeleteByRef()
         {
-            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            var hb = new HashBucket<decimal>(new HashBucketOptions()
             {
                 Capacity = 4,
                 //LinearSearchLimit = 4
@@ -258,9 +258,9 @@ namespace PathReduxTests.PathRedux
 
 
         [TestMethod]
-        public void HashBucket2DeleteWithGap()
+        public void HashBucketDeleteWithGap()
         {
-            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            var hb = new HashBucket<decimal>(new HashBucketOptions()
             {
                 Capacity = 4,
                 //LinearSearchLimit = 4
@@ -293,9 +293,9 @@ namespace PathReduxTests.PathRedux
 
 
         [TestMethod]
-        public void HashBucket2ChunkLimitNoDualHash()
+        public void HashBucketChunkLimitNoDualHash()
         {
-            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            var hb = new HashBucket<decimal>(new HashBucketOptions()
             {
                 Capacity = 8,
                 ChunkSize = 2,
@@ -349,9 +349,9 @@ namespace PathReduxTests.PathRedux
         }
 
         [TestMethod]
-        public void HashBucket2ChunkLimitPermute()
+        public void HashBucketChunkLimitPermute()
         {
-            var hb = new HashBucket2<decimal>(new HashBucket2Options()
+            var hb = new HashBucket<decimal>(new HashBucketOptions()
             {
                 Capacity = 8,
                 ChunkSize = 2,
@@ -413,11 +413,11 @@ namespace PathReduxTests.PathRedux
 
 
         [TestMethod]
-        public void HashBucket2RandomDistribution()
+        public void HashBucketRandomDistribution()
         {
             var random = new Random(Seed: 12345);
 
-            var hb = new HashBucket2<int>(new HashBucket2Options()
+            var hb = new HashBucket<int>(new HashBucketOptions()
             {
                 Capacity = 2000,
                 ChunkSize = 200,
@@ -486,11 +486,11 @@ namespace PathReduxTests.PathRedux
         }
 
         [TestMethod]
-        public void HashBucket2RandomDistributionWithoutDualHashing()
+        public void HashBucketRandomDistributionWithoutDualHashing()
         {
             var random = new Random(Seed: 12345);
 
-            var hb = new HashBucket2<int>(new HashBucket2Options()
+            var hb = new HashBucket<int>(new HashBucketOptions()
             {
                 Capacity = 2000,
                 ChunkSize = 200,
@@ -563,11 +563,11 @@ namespace PathReduxTests.PathRedux
 
 
         [TestMethod]
-        public void HashBucket2RandomDistributionMoreChunks()
+        public void HashBucketRandomDistributionMoreChunks()
         {
             var random = new Random(Seed: 12345);
 
-            var hb = new HashBucket2<int>(new HashBucket2Options()
+            var hb = new HashBucket<int>(new HashBucketOptions()
             {
                 Capacity = 2000,
                 ChunkSize = 50,
@@ -627,11 +627,11 @@ namespace PathReduxTests.PathRedux
         }
 
         [TestMethod]
-        public void HashBucket2RandomDistributionMoreChunksWithoutDualHashing()
+        public void HashBucketRandomDistributionMoreChunksWithoutDualHashing()
         {
             var random = new Random(Seed: 12345);
 
-            var hb = new HashBucket2<int>(new HashBucket2Options()
+            var hb = new HashBucket<int>(new HashBucketOptions()
             {
                 Capacity = 2000,
                 ChunkSize = 50,
@@ -695,11 +695,11 @@ namespace PathReduxTests.PathRedux
 
 
         [TestMethod]
-        public void HashBucket2RandomDistributionAverageProbe()
+        public void HashBucketRandomDistributionAverageProbe()
         {
             var random = new Random(Seed: 12345);
 
-            var hb = new HashBucket2<int>(new HashBucket2Options()
+            var hb = new HashBucket<int>(new HashBucketOptions()
             {
                 Capacity = 2000,
                 ChunkSize = 50,
@@ -767,11 +767,11 @@ namespace PathReduxTests.PathRedux
         }
 
         [TestMethod]
-        public void HashBucket2RandomDistributionAverageProbeSmallChunk()
+        public void HashBucketRandomDistributionAverageProbeSmallChunk()
         {
             var random = new Random(Seed: 12345);
 
-            var hb = new HashBucket2<int>(new HashBucket2Options()
+            var hb = new HashBucket<int>(new HashBucketOptions()
             {
                 Capacity = 2000,
                 ChunkSize = 20,
@@ -841,7 +841,7 @@ namespace PathReduxTests.PathRedux
             }
         }
 
-        private double avgProbeLength(HashBucket2<int> hb, Random random, int count)
+        private double avgProbeLength(HashBucket<int> hb, Random random, int count)
         {
             double probe = 0;
 
@@ -858,7 +858,7 @@ namespace PathReduxTests.PathRedux
             return probe / count;
         }
 
-        private int? modalProbeLength(HashBucket2<int> hb, Random random, int count)
+        private int? modalProbeLength(HashBucket<int> hb, Random random, int count)
         {
             var probes = new int[count];
 

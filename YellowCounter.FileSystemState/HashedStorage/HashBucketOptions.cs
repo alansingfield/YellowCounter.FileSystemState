@@ -4,7 +4,7 @@ using System.Text;
 
 namespace YellowCounter.FileSystemState.HashedStorage
 {
-    public class HashBucket2Options
+    public class HashBucketOptions
     {
         /// <summary>
         /// Maximum number of elements which can be stored

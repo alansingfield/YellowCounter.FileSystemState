@@ -16,7 +16,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
     /// A hash bucket using the Open Addressing scheme. This is a fixed capacity
     /// implementation.
     /// </summary>
-    public partial class HashBucket2<T> : IDisposable
+    public partial class HashBucket<T> : IDisposable
     {
         private T[] mem;
         private readonly int capacity;
@@ -36,7 +36,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// implementation. 
         /// </summary>
         /// <param name="options">Sizing options</param>
-        public HashBucket2(HashBucket2Options options)
+        public HashBucket(HashBucketOptions options)
         {
             this.capacity = options.Capacity;
             this.permute = options.Permute;
@@ -83,7 +83,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// hash clustering. This function converts a hash code (which gives the first
         /// position) to another hash code (for the second position). By default this
         /// uses a non-repeating pseudo-random sequence from PseudoRandomSequence
-        /// but it can be overridden using the HashBucket2Options.Permute function.
+        /// but it can be overridden using the HashBucketOptions.Permute function.
         /// Must be deterministic.
         /// </summary>
         /// <param name="hash">Input hash</param>
@@ -372,7 +372,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         }
 
         // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~HashBucket2()
+        // ~HashBucket()
         // {
         //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         //     Dispose(disposing: false);

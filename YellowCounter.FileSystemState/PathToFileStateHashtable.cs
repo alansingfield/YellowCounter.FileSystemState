@@ -84,7 +84,7 @@ namespace YellowCounter.FileSystemState
             }
         }
 
-        public HashBucket2<FileState>.Enumerator GetEnumerator() => dict.GetEnumerator();
+        public HashBucket<FileState>.Enumerator GetEnumerator() => dict.GetEnumerator();
 
 
         public void Sweep()

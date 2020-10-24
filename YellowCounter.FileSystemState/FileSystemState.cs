@@ -22,7 +22,9 @@ namespace YellowCounter.FileSystemState
             if(!Directory.Exists(rootDir))
                 throw new DirectoryNotFoundException();
 
-            EnumerationOptions = options ?? new EnumerationOptions();
+            EnumerationOptions = options ?? new EnumerationOptions()
+            {
+            };
 
             this.pathStorage = new PathStorage(new PathStorageOptions()
             {
@@ -176,7 +178,7 @@ namespace YellowCounter.FileSystemState
                     else if(x.Flags.HasFlag(FileStateFlags.Changed))
                         changes.Add(x);
                 }
-                else if(x.Flags.HasFlag(FileStateFlags.None)) // FIX!!! WRONG!!!
+                else if(x.Flags == FileStateFlags.None)
                 {
                     removals.Add(x);
                 }

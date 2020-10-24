@@ -4,14 +4,14 @@ using System.Text;
 
 namespace YellowCounter.FileSystemState.HashedStorage
 {
-    public static class HashBucket2Extensions
+    public static class HashBucketExtensions
     {
-        public static bool TryStore<T>(this HashBucket2<T> source, int hash, T value)
+        public static bool TryStore<T>(this HashBucket<T> source, int hash, T value)
         {
             return source.TryStore(hash, value, out int _);
         }
 
-        public static List<T> ToList<T>(this HashBucket2<T> source)
+        public static List<T> ToList<T>(this HashBucket<T> source)
         {
             var result = new List<T>(source.Usage);
 
@@ -23,7 +23,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
             return result;
         }
 
-        public static T[] ToArray<T>(this HashBucket2<T> source)
+        public static T[] ToArray<T>(this HashBucket<T> source)
         {
             var result = new T[source.Usage];
 
@@ -37,7 +37,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
             return result;
         }
 
-        public static IEnumerable<HashBucket2Options> SizeOptions<T>(this HashBucket2<T> source, int headroom = 0)
+        public static IEnumerable<HashBucketOptions> SizeOptions<T>(this HashBucket<T> source, int headroom = 0)
         {
             int requiredSize = source.Occupancy + headroom;
 
@@ -70,7 +70,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 if(newCapacity < requiredSize)
                     newCapacity = requiredSize;
 
-                yield return new HashBucket2Options()
+                yield return new HashBucketOptions()
                 {
                     Capacity = newCapacity,
                     ChunkSize = source.ChunkSize,

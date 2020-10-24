@@ -3,7 +3,7 @@ using YellowCounter.FileSystemState.HashedStorage;
 
 namespace YellowCounter.FileSystemState.HashedStorage
 {
-    public class SetByRefOptions : HashBucket2Options
+    public class SetByRefOptions : HashBucketOptions
     {
         public int? FillFactor { get; set; }
     }
@@ -12,7 +12,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         where TValue: struct 
         where TKey: struct
     {
-        private HashBucket2<TValue> hashBucket;
+        private HashBucket<TValue> hashBucket;
         private float fillFactor;
         private int usageLimit;
 
@@ -23,7 +23,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 Capacity = 256,
             };
 
-            hashBucket = new HashBucket2<TValue>(options);
+            hashBucket = new HashBucket<TValue>(options);
 
             this.fillFactor = (options.FillFactor ?? 80) / 100.0f;
 
@@ -203,24 +203,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
         public ref TValue ElementAt(int index) => ref hashBucket[index];
 
-        //TValue dummy;
-
-        //public ref TValue TryGet(in TKey key, out bool success)
-        //{
-        //    int hash = GetHashOfKey(key);
-
-        //    foreach(ref TValue item in hashBucket.Retrieve(hash))
-        //    {
-        //        if(hashAndMatch(key, hash, item))
-        //        {
-        //            success = true;
-        //            return ref item;
-        //        }
-        //    }
-        //    success = false;
-        //    return ref dummy;
-        //}
-
         public bool Delete(TKey key)
         {
             int hash = GetHashOfKey(key);
@@ -260,7 +242,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
             return false;
         }
 
-        public HashBucket2<TValue>.Enumerator GetEnumerator()
+        public HashBucket<TValue>.Enumerator GetEnumerator()
         {
             return hashBucket.GetEnumerator();
         }
@@ -268,7 +250,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
         public void Resize(int newCapacity)
         {
-            var replacement = new HashBucket2<TValue>(new HashBucket2Options()
+            var replacement = new HashBucket<TValue>(new HashBucketOptions()
             {
                 Capacity = newCapacity,
                 ChunkSize = hashBucket.ChunkSize,
@@ -294,7 +276,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
             foreach(var opts in hashBucket.SizeOptions(headroom))
             {
                 // Create a replacement hash bucket of the new size
-                var replacement = new HashBucket2<TValue>(opts);
+                var replacement = new HashBucket<TValue>(opts);
 
                 // Populate the replacement with our existing data
                 foreach(ref var itm in hashBucket)

@@ -5,15 +5,13 @@ using System;
 
 namespace YellowCounter.FileSystemState
 {
-    [Serializable]
     internal struct FileState
     {
-        //[NonSerialized]
-        public FileStateFlags Flags;
         public int DirectoryRef;
         public int FilenameRef;
         public DateTimeOffset LastWriteTimeUtc;
         public long Length;
+        public FileStateFlags Flags;
     }
 
     [Flags]

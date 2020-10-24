@@ -19,36 +19,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
             return unchecked((int)Permute((uint)x));
         }
 
-        //[TestMethod]
-        //public void HashsearchX()
-        //{
-        //    var negative = new BitArray(int.MaxValue);
-        //    var positive = new BitArray(int.MaxValue);
-
-        //    for(uint i = 0; i <= uint.MaxValue; i++)
-        //    {
-        //        uint rand = prng(i);
-
-        //        if(rand < 0x8000_0000)
-        //        {
-        //            int idx = (int)rand;
-
-        //            if(positive[idx])
-        //                throw new Exception("Duplicate found");
-        //            positive[idx] = true;
-        //        }
-        //        else
-        //        {
-        //            int idx = (int)(rand - 0x8000_0000);
-
-        //            if(negative[idx])
-        //                throw new Exception("Duplicate found");
-        //            negative[idx] = true;
-
-        //        }
-        //    }
-        //}
-
         private static uint permuteQPR(uint x)
         {
             // from https://preshing.com/20121224/how-to-generate-a-sequence-of-unique-random-integers/
