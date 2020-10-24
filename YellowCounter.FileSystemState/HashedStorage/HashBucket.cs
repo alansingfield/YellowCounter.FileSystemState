@@ -182,6 +182,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
             // of the array as we would end up in an infinite loop.
             if(cursor.MoveCount > probeDepth)
             {
+                // Note: This is a ref variable so we are actually writing to
+                // this.chunkProbeDepth[n]
                 probeDepth = cursor.MoveCount;
             }
 
