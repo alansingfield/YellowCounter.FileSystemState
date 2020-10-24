@@ -5,46 +5,46 @@ using YellowCounter.FileSystemState;
 
 public partial class FileSystemStateDerivedTests
 {
-    [Trait("Category", "DerivedTests")]
-    [Fact]
-    public static void ShouldIncludeEntryTest()
-    {
-        string currentDir = Utility.GetRandomDirectory();
-        string subDirectory = new DirectoryInfo(currentDir).CreateSubdirectory("sub").FullName;
+    //[Trait("Category", "DerivedTests")]
+    //[Fact]
+    //public static void ShouldIncludeEntryTest()
+    //{
+    //    string currentDir = Utility.GetRandomDirectory();
+    //    string subDirectory = new DirectoryInfo(currentDir).CreateSubdirectory("sub").FullName;
 
-        DerivedWatcher watcher2 = new DerivedWatcher(currentDir);
-        watcher2.LoadState();
+    //    DerivedWatcher watcher2 = new DerivedWatcher(currentDir);
+    //    watcher2.LoadState();
 
-        try
-        {
-            Assert.True(watcher2.ShouldIncludeEntryCalled);
-            Assert.False(watcher2.ShouldRecurseIntoEntryCalled);
-        }
-        finally
-        {
-            Directory.Delete(currentDir, true);
-        }
-    }
+    //    try
+    //    {
+    //        Assert.True(watcher2.ShouldIncludeEntryCalled);
+    //        Assert.False(watcher2.ShouldRecurseIntoEntryCalled);
+    //    }
+    //    finally
+    //    {
+    //        Directory.Delete(currentDir, true);
+    //    }
+    //}
 
-    [Fact]
-    public static void ShouldRecurseIntoEntryTest()
-    {
-        string currentDir = Utility.GetRandomDirectory();
-        string subDirectory = new DirectoryInfo(currentDir).CreateSubdirectory("sub").FullName;
+    //[Fact]
+    //public static void ShouldRecurseIntoEntryTest()
+    //{
+    //    string currentDir = Utility.GetRandomDirectory();
+    //    string subDirectory = new DirectoryInfo(currentDir).CreateSubdirectory("sub").FullName;
 
-        DerivedWatcher watcher2 = new DerivedWatcher(currentDir, options: new EnumerationOptions { RecurseSubdirectories = true });
-        watcher2.LoadState();
+    //    DerivedWatcher watcher2 = new DerivedWatcher(currentDir, options: new EnumerationOptions { RecurseSubdirectories = true });
+    //    watcher2.LoadState();
 
-        try
-        {
-            Assert.True(watcher2.ShouldIncludeEntryCalled);
-            Assert.True(watcher2.ShouldRecurseIntoEntryCalled);
-        }
-        finally
-        {
-            Directory.Delete(currentDir, true);
-        }
-    }
+    //    try
+    //    {
+    //        Assert.True(watcher2.ShouldIncludeEntryCalled);
+    //        Assert.True(watcher2.ShouldRecurseIntoEntryCalled);
+    //    }
+    //    finally
+    //    {
+    //        Directory.Delete(currentDir, true);
+    //    }
+    //}
 }
 
 public class DerivedWatcher : FileSystemState

@@ -16,7 +16,7 @@ namespace PathReduxTests.PathRedux
         {
             var cursor = new Cursor(0, 3, 3);
 
-            ShouldlyTest.Gen(cursor, nameof(cursor));
+            //ShouldlyTest.Gen(cursor, nameof(cursor));
 
             {
                 cursor.ShouldNotBeNull();

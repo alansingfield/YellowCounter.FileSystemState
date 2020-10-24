@@ -51,17 +51,6 @@ namespace YellowCounter.FileSystemState
             acceptChanges();
         }
 
-        public void LoadState(Stream stream)
-        {
-            //BinaryFormatter serializer = new BinaryFormatter();
-            //_state = (PathToFileStateHashtable)serializer.Deserialize(stream);
-        }
-
-        public void SaveState(Stream stream)
-        {
-            //BinaryFormatter serializer = new BinaryFormatter();
-            //serializer.Serialize(stream, _state);
-        }
 
         // This function walks all watched files, collects changes, and updates state
         public FileChangeList GetChanges()

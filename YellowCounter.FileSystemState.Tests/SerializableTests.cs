@@ -82,14 +82,14 @@ public class FileSystemStateSerializableTests
     //    }
     //}
 
-    private static void RoundTrip(FileSystemState source, FileSystemState destination)
-    {
-        using (MemoryStream stream = new MemoryStream())
-        {
-            source.SaveState(stream);
+    //private static void RoundTrip(FileSystemState source, FileSystemState destination)
+    //{
+    //    using (MemoryStream stream = new MemoryStream())
+    //    {
+    //        source.SaveState(stream);
 
-            stream.Position = 0;
-            destination.LoadState(stream);
-        }
-    }
+    //        stream.Position = 0;
+    //        destination.LoadState(stream);
+    //    }
+    //}
 }
