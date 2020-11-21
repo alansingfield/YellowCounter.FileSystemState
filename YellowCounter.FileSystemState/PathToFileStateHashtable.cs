@@ -10,9 +10,10 @@ using YellowCounter.FileSystemState.HashedStorage;
 
 namespace YellowCounter.FileSystemState
 {
-    internal class PathToFileStateHashtable
+    internal class PathToFileStateHashtable : IDisposable
     {
         FileStateReferenceSet dict;
+        private bool disposedValue;
         private readonly IPathStorage pathStorage;
 
         public PathToFileStateHashtable(IPathStorage pathStorage) 
@@ -103,6 +104,28 @@ namespace YellowCounter.FileSystemState
                     fileState.Flags = FileStateFlags.None;
                 }
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if(!disposedValue)
+            {
+                if(disposing)
+                {
+                    dict?.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 

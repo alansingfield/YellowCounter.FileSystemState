@@ -126,6 +126,7 @@ namespace YellowCounter.FileSystemState.PathRedux
                 }
 
                 // If we get to here, we've successfully rebuilt the buckets.
+                this.buckets.Dispose();
                 this.buckets = replacement;
                 return;
             }

@@ -8,7 +8,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         public int? FillFactor { get; set; }
     }
 
-    public abstract class ReferenceSet<TKey, TValue> 
+    public abstract class ReferenceSet<TKey, TValue> : IDisposable
         where TValue: struct 
         where TKey: struct
     {
@@ -102,32 +102,32 @@ namespace YellowCounter.FileSystemState.HashedStorage
         }
 
 
-        /// <summary>
-        /// Finds the item with the given key. If the item can't be found, calls
-        /// valueFactory() to create a new item, and stores this under the key
-        /// provided.
-        /// </summary>
-        /// <param name="key">Key to search for.</param>
-        /// <param name="valueFactory">Creates the <typeparamref name="TValue"/>
-        /// if not found in existing set</param>
-        /// <returns>Reference to the found or newly created item.</returns>
-        public ref TValue GetOrAdd<TContext>(TKey key, Func<TContext, TValue> valueFactory, TContext context)
-        {
-            int hash = GetHashOfKey(key);
+        ///// <summary>
+        ///// Finds the item with the given key. If the item can't be found, calls
+        ///// valueFactory() to create a new item, and stores this under the key
+        ///// provided.
+        ///// </summary>
+        ///// <param name="key">Key to search for.</param>
+        ///// <param name="valueFactory">Creates the <typeparamref name="TValue"/>
+        ///// if not found in existing set</param>
+        ///// <returns>Reference to the found or newly created item.</returns>
+        //public ref TValue GetOrAdd<TContext>(TKey key, Func<TContext, TValue> valueFactory, TContext context)
+        //{
+        //    int hash = GetHashOfKey(key);
 
-            foreach(ref TValue item in hashBucket.Retrieve(hash))
-            {
-                if(hashAndMatch(key, hash, item))
-                {
-                    return ref item;
-                }
-            }
+        //    foreach(ref TValue item in hashBucket.Retrieve(hash))
+        //    {
+        //        if(hashAndMatch(key, hash, item))
+        //        {
+        //            return ref item;
+        //        }
+        //    }
 
-            // Not found, call the factory method to create the item.
-            TValue newItem = valueFactory(context);
+        //    // Not found, call the factory method to create the item.
+        //    TValue newItem = valueFactory(context);
 
-            return ref tryStoreInternal(newItem, hash);
-        }
+        //    return ref tryStoreInternal(newItem, hash);
+        //}
 
         private bool hashAndMatch(TKey key, int hash, TValue item)
         {
@@ -139,37 +139,37 @@ namespace YellowCounter.FileSystemState.HashedStorage
         }
 
 
-        /// <summary>
-        /// Calculates the Key of the argument, and then looks for an existing
-        /// item which matches that key. If it finds one, the old item is
-        /// overwritten in-place with the new one. If it does not find the
-        /// item the supplied value is added to the Set.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns>Reference to the item within this ReferenceSet</returns>
-        public ref TValue AddOrReplace(TValue value)
-        {
-            TKey key = GetKey(value);
-            int hash = GetHashOfKey(key);
+        ///// <summary>
+        ///// Calculates the Key of the argument, and then looks for an existing
+        ///// item which matches that key. If it finds one, the old item is
+        ///// overwritten in-place with the new one. If it does not find the
+        ///// item the supplied value is added to the Set.
+        ///// </summary>
+        ///// <param name="value"></param>
+        ///// <returns>Reference to the item within this ReferenceSet</returns>
+        //public ref TValue AddOrReplace(TValue value)
+        //{
+        //    TKey key = GetKey(value);
+        //    int hash = GetHashOfKey(key);
 
-            // If the key is already in our HashBucket, overwrite the slot
-            // with the supplied value.
-            foreach(ref TValue item in hashBucket.Retrieve(hash))
-            {
-                if(hashAndMatch(key, hash, item))
-                {
-                    // Copy-write the supplied value into our array
-                    item = value;
+        //    // If the key is already in our HashBucket, overwrite the slot
+        //    // with the supplied value.
+        //    foreach(ref TValue item in hashBucket.Retrieve(hash))
+        //    {
+        //        if(hashAndMatch(key, hash, item))
+        //        {
+        //            // Copy-write the supplied value into our array
+        //            item = value;
 
-                    // Return reference to the item in the array
-                    return ref item;
-                }
-            }
+        //            // Return reference to the item in the array
+        //            return ref item;
+        //        }
+        //    }
 
-            // Item not yet in the HashBucket, so add it in and return
-            // reference to item created.
-            return ref tryStoreInternal(value, hash);
-        }
+        //    // Item not yet in the HashBucket, so add it in and return
+        //    // reference to item created.
+        //    return ref tryStoreInternal(value, hash);
+        //}
 
         public ref TValue this[TKey key]
         {
@@ -254,7 +254,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
             {
                 Capacity = newCapacity,
                 ChunkSize = hashBucket.ChunkSize,
-                Permute = hashBucket.Permute
             });
 
             // Populate the replacement with our existing data
@@ -298,6 +297,11 @@ namespace YellowCounter.FileSystemState.HashedStorage
             }
 
             throw new Exception("Unable to rebuild HashBucket");
+        }
+
+        public void Dispose()
+        {
+            ((IDisposable)hashBucket)?.Dispose();
         }
 
         /// <summary>
