@@ -103,6 +103,7 @@ namespace PathReduxTests.Bits
 
             barr.Resize(120, forceReallocation: true);
 
+            barr.Length.ShouldBe(120);
             barr[99].ShouldBeTrue();
         }
 
