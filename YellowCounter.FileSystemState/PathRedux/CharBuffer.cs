@@ -31,6 +31,14 @@ namespace YellowCounter.FileSystemState.PathRedux
             this.buffer = newBuffer;
         }
 
+        /// <summary>
+        /// Store the text provided at the next free position in our buffer. This will
+        /// always be at the end of the buffer. Return the index position we stored at.
+        /// The text must not contain a null terminator \0 as this would truncate the
+        /// text on retrieval.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public int Store(ReadOnlySpan<char> input)
         {
             // We need space for our text, our null terminator, and an extra
@@ -54,7 +62,13 @@ namespace YellowCounter.FileSystemState.PathRedux
             return result;
         }
 
-        public int Match(ReadOnlySpan<char> arg, int index)
+        /// <summary>
+        /// Returns TRUE if arg matches the text at position index in our buffer.
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public bool Match(ReadOnlySpan<char> arg, int index)
         {
             var bufSpan = buffer.Span;
 
@@ -63,30 +77,11 @@ namespace YellowCounter.FileSystemState.PathRedux
                 // Check for null terminator so we don't match to a
                 // longer string.
                 if(bufSpan[index + arg.Length] == '\0')
-                    return index;
+                    return true;
             }
 
-            // -1 for not found.
-            return -1;
-        }
-
-        public int Match(ReadOnlySpan<char> arg, IEnumerable<int> indices)
-        {
-            var bufSpan = buffer.Span;
-
-            foreach(int idx in indices)
-            {
-                if(bufSpan.Slice(idx, arg.Length).SequenceEqual(arg))
-                {
-                    // Check for null terminator so we don't match to a
-                    // longer string.
-                    if(bufSpan[idx + arg.Length] == '\0')
-                        return idx;
-                }
-            }
-
-            // -1 for not found.
-            return -1;
+            // not found.
+            return false;
         }
 
         public ReadOnlySpan<char> Retrieve(int pos)
@@ -100,52 +95,55 @@ namespace YellowCounter.FileSystemState.PathRedux
             return begin.Slice(0, len);
         }
 
-        public string CreateString(IEnumerable<int> indices)
+        /// <summary>
+        /// Given a 
+        /// </summary>
+        /// <param name="reverseIndices"></param>
+        /// <returns></returns>
+        public string CreateString(IEnumerable<int> reverseIndices)
         {
             int totalLen = 0;
-            var posLens = new List<PosLen>();
-            // Gather up pos / lens
+            var posLens = new List<(int pos, int len)>();
 
             var bufSpan = buffer.Span;
 
-            foreach(var idx in indices)
+            // Gather the position and length of each segment of text
+            // into posLens. Calculate the total length of the string.
+            foreach(var pos in reverseIndices)
             {
-                var tail = bufSpan.Slice(idx);
+                var tail = bufSpan.Slice(pos);
                 var len = tail.IndexOf('\0');
 
                 totalLen += len;
-                posLens.Add(new PosLen(idx, len));
-                //var text = tail.Slice(0, len);
+                posLens.Add((pos, len));
             }
 
             // String in REVERSE ORDER of indices - this is because we start at
             // the end and then point back to the parent, grandparent etc.
-            return String.Create(totalLen, (buffer, posLens, totalLen),
+            return String.Create(
+                length: totalLen,       // Need to specify length of string up-front.
+                state:  (object)null,
                 (chars, state) =>
                 {
-                    var span = state.buffer.Span;
-                    var pos = state.totalLen;
+                    var span = buffer.Span;
 
-                    foreach(var posLen in posLens)
+                    // Cursor starts at the END of the result buffer.
+                    var cursor = totalLen;
+
+                    // Loop through the position and length of each item
+                    foreach(var (pos, len) in posLens)
                     {
-                        var text = span.Slice(posLen.Pos, posLen.Len);
+                        // Get the slice of text
+                        var text = span.Slice(pos, len);
 
-                        pos -= posLen.Len;
+                        // Shift the cursor back to the start where we are going
+                        // to write the text
+                        cursor -= len;
 
-                        text.CopyTo(chars.Slice(pos, posLen.Len));
+                        // Copy the text from the buffer to the result string.
+                        text.CopyTo(chars.Slice(cursor, len));
                     }
                 });
-        }
-
-        private readonly struct PosLen
-        {
-            public PosLen(int pos, int len)
-            {
-                this.Pos = pos;
-                this.Len = len;
-            }
-            public int Pos { get; }
-            public int Len { get; }
         }
 
         public Enumerator GetEnumerator()
@@ -155,6 +153,9 @@ namespace YellowCounter.FileSystemState.PathRedux
             return new Enumerator(bufSpan);
         }
 
+        /// <summary>
+        /// Enumerate through the entire contents of the buffer.
+        /// </summary>
         public ref struct Enumerator
         {
             private int pos;
@@ -199,6 +200,12 @@ namespace YellowCounter.FileSystemState.PathRedux
         }
 
 
+        /// <summary>
+        /// Given a set of indices, retrieve the text at each position and concatenate
+        /// into a single sequence of chars.
+        /// </summary>
+        /// <param name="indices"></param>
+        /// <returns></returns>
         public ReadOnlySequence<char> Retrieve(IEnumerable<int> indices)
         {
             Segment<char> root = null;

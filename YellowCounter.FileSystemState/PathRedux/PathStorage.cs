@@ -138,12 +138,14 @@ namespace YellowCounter.FileSystemState.PathRedux
         {
             var hashCode = newHashCode();
 
-            foreach(var textRef in chain(idx).Reverse())
+            // Take our index point, calculate all ancestors back to root
+            var sequence = buf.Retrieve(ancestorsAndSelf(idx).Reverse());
+
+            foreach(var mem in sequence)
             {
-                var text = buf.Retrieve(textRef);
-                foreach(var elem in text)
+                foreach(var ch in mem.Span)
                 {
-                    hashCode.Add(elem);
+                    hashCode.Add(ch);
                 }
             }
 
@@ -153,10 +155,15 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         public string CreateString(int idx)
         {
-            return buf.CreateString(chain(idx));
+            return buf.CreateString(ancestorsAndSelf(idx));
         }
 
-        private IEnumerable<int> chain(int idx)
+        /// <summary>
+        /// Follow the parent, grandparent chain back to the root.
+        /// </summary>
+        /// <param name="idx"></param>
+        /// <returns></returns>
+        private IEnumerable<int> ancestorsAndSelf(int idx)
         {
             int cursorIdx = idx;
 

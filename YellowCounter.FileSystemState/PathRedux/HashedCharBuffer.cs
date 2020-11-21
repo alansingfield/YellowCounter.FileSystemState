@@ -35,7 +35,7 @@ namespace YellowCounter.FileSystemState.PathRedux
         /// <returns></returns>
         public int Store(ReadOnlySpan<char> text)
         {
-            int hash = hashSequence(text);
+            int hash = HashSequence(text);
             int foundPos = findByHash(hash, text);
 
             if(foundPos != -1)
@@ -71,7 +71,7 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         public int Find(ReadOnlySpan<char> text)
         {
-            int hash = hashSequence(text);
+            int hash = HashSequence(text);
             return findByHash(hash, text);
         }
 
@@ -79,16 +79,14 @@ namespace YellowCounter.FileSystemState.PathRedux
         {
             foreach(var index in hashLookup.Retrieve(hash))
             {
-                var position = charBuffer.Match(text, index);
-
-                if(position != -1)
-                    return position;
+                if(charBuffer.Match(text, index))
+                    return index;
             }
 
             return -1;
         }
 
-        private int hashSequence(ReadOnlySpan<char> text) => newHashCode().HashSequence(text);
+        public int HashSequence(ReadOnlySpan<char> text) => newHashCode().HashSequence(text);
 
 
         private void storeHashInLookup(int hash, int pos)
@@ -116,7 +114,7 @@ namespace YellowCounter.FileSystemState.PathRedux
                 // Populate the replacement with our existing data
                 foreach(var itm in charBuffer)
                 {
-                    if(!replacement.TryStore(hashSequence(itm.Span), itm.Pos))
+                    if(!replacement.TryStore(HashSequence(itm.Span), itm.Pos))
                         continue;   // Can't store in the replacement, try a different size
                 }
 

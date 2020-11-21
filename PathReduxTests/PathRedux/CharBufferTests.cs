@@ -24,7 +24,7 @@ namespace YellowCounter.FileSystemState.Tests.PathRedux
         }
 
         [TestMethod]
-        public void CharBuffer2()
+        public void CharBufferRetrieveConcatenated()
         {
             var charBuffer = new CharBuffer(100);
 
