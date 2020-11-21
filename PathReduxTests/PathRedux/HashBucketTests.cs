@@ -295,11 +295,10 @@ namespace PathReduxTests.PathRedux
         [TestMethod]
         public void HashBucketChunkLimitNoDualHash()
         {
-            var hb = new HashBucket<decimal>(new HashBucketOptions()
+            var hb = new HashBucketNoPermute<decimal>(new HashBucketOptions()
             {
                 Capacity = 8,
                 ChunkSize = 2,
-                Permute = x => x        // Don't do dual hashing
             });
 
             var indices = new int[8];
@@ -348,14 +347,28 @@ namespace PathReduxTests.PathRedux
             }
         }
 
+        private class HashBucketForChunkLimit<T> : HashBucket<T>
+        {
+            public HashBucketForChunkLimit(HashBucketOptions options) : base(options) { }
+
+            protected override int Permute(int hash) => 7 - hash;
+        }
+
+        private class HashBucketNoPermute<T> : HashBucket<T>
+        {
+            public HashBucketNoPermute(HashBucketOptions options) : base(options) { }
+
+            // Don't permute a secondary hash
+            protected override int Permute(int hash) => hash;
+        }
+
         [TestMethod]
         public void HashBucketChunkLimitPermute()
         {
-            var hb = new HashBucket<decimal>(new HashBucketOptions()
+            var hb = new HashBucketForChunkLimit<decimal>(new HashBucketOptions()
             {
                 Capacity = 8,
                 ChunkSize = 2,
-                Permute = x => 7 - x
             });
 
             var indices = new int[8];
@@ -490,11 +503,10 @@ namespace PathReduxTests.PathRedux
         {
             var random = new Random(Seed: 12345);
 
-            var hb = new HashBucket<int>(new HashBucketOptions()
+            var hb = new HashBucketNoPermute<int>(new HashBucketOptions()
             {
                 Capacity = 2000,
                 ChunkSize = 200,
-                Permute = x => x,       // Don't use the second hashing.
             });
 
             var testpoints = new int[] { 500, 1000, 1300, 1400, 1500, 1750, 1800, 1900, 2000 };
@@ -631,11 +643,10 @@ namespace PathReduxTests.PathRedux
         {
             var random = new Random(Seed: 12345);
 
-            var hb = new HashBucket<int>(new HashBucketOptions()
+            var hb = new HashBucketNoPermute<int>(new HashBucketOptions()
             {
                 Capacity = 2000,
                 ChunkSize = 50,
-                Permute = x => x,       // Don't use the second hashing.
             });
 
             var testpoints = new int[] { 500, 1000, 1300, 1400, 1500, 1750, 1800, 1900, 2000 };

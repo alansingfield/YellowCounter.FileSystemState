@@ -25,8 +25,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
         private readonly int sizeofT;
         private int occupancy;
         private int usage;
-        private Func<int, int> permute;
         private readonly int chunkSize;
+
+
         private int numChunks;
         private int[] chunkProbeDepth;
         private bool disposedValue;
@@ -39,7 +40,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
         public HashBucket(HashBucketOptions options)
         {
             this.capacity = options.Capacity;
-            this.permute = options.Permute;
             this.chunkSize = options.ChunkSize;
 
             this.mem = ArrayPool<T>.Shared.Rent(this.capacity);
@@ -88,13 +88,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// </summary>
         /// <param name="hash">Input hash</param>
         /// <returns>Secondary hash corresponding to the input</returns>
-        public int Permute(int hash)
+        protected virtual int Permute(int hash)
         {
-            // We can override the secondary hash permutation in the options constructor.
-            if(permute != null)
-                return permute(hash);
-
-            // Normally we use the non-repeating pseudo-random sequence.
+            // Use the non-repeating pseudo-random sequence.
             return PseudoRandomSequence.Permute(hash);
         }
 
@@ -365,6 +361,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 if(disposing)
                 {
                     ArrayPool<T>.Shared.Return(this.mem);
+
+                    elementsInUse?.Dispose();
+                    softDeleted?.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer

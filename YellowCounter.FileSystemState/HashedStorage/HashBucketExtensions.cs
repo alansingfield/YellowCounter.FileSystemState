@@ -74,7 +74,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 {
                     Capacity = newCapacity,
                     ChunkSize = source.ChunkSize,
-                    Permute = source.Permute,
                 };
             }
 

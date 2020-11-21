@@ -16,12 +16,5 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// maximum known probe depth.
         /// </summary>
         public int ChunkSize { get; set; }
-
-        /// <summary>
-        /// Permutation function to derive the second hash from the first.
-        /// If null, this defaults to a non-repeating pseudo-random
-        /// sequence.
-        /// </summary>
-        public Func<int, int> Permute { get; set; }
     }
 }
