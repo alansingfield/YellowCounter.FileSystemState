@@ -95,57 +95,6 @@ namespace YellowCounter.FileSystemState.PathRedux
             return begin.Slice(0, len);
         }
 
-        /// <summary>
-        /// Given a 
-        /// </summary>
-        /// <param name="reverseIndices"></param>
-        /// <returns></returns>
-        public string CreateString(IEnumerable<int> reverseIndices)
-        {
-            int totalLen = 0;
-            var posLens = new List<(int pos, int len)>();
-
-            var bufSpan = buffer.Span;
-
-            // Gather the position and length of each segment of text
-            // into posLens. Calculate the total length of the string.
-            foreach(var pos in reverseIndices)
-            {
-                var tail = bufSpan.Slice(pos);
-                var len = tail.IndexOf('\0');
-
-                totalLen += len;
-                posLens.Add((pos, len));
-            }
-
-            // String in REVERSE ORDER of indices - this is because we start at
-            // the end and then point back to the parent, grandparent etc.
-            return String.Create(
-                length: totalLen,       // Need to specify length of string up-front.
-                state:  (object)null,
-                (chars, state) =>
-                {
-                    var span = buffer.Span;
-
-                    // Cursor starts at the END of the result buffer.
-                    var cursor = totalLen;
-
-                    // Loop through the position and length of each item
-                    foreach(var (pos, len) in posLens)
-                    {
-                        // Get the slice of text
-                        var text = span.Slice(pos, len);
-
-                        // Shift the cursor back to the start where we are going
-                        // to write the text
-                        cursor -= len;
-
-                        // Copy the text from the buffer to the result string.
-                        text.CopyTo(chars.Slice(cursor, len));
-                    }
-                });
-        }
-
         public Enumerator GetEnumerator()
         {
             var bufSpan = buffer.Span;

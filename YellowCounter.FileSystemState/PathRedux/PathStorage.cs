@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -52,23 +53,29 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         public int Store(ReadOnlySpan<char> arg)
         {
+            // Generate a hash of the text supplied in arg.
             var hash = newHashCode().HashSequence(arg);
 
+            // This hash then will give us a number of candidate indexes to try
             foreach(var idx in buckets.Retrieve(hash))
             {
+                // Does the arg supplied match the text we stored previously
+                // at this index?
                 if(match(idx, arg))
                 {
+                    // Yes - return the index of an existing path.
                     return idx;
                 }
             }
 
-            // Find a slash or backslash.
-            int slashPos = arg.LastIndexOfAny(new[] { '\\', '/' });
-
             int parentIdx;
             int textRef;
 
-            // No more slash delimiters, so store a root entry (parent index -1).
+            // Find a slash or backslash.
+            int slashPos = arg.LastIndexOfAny(new[] { '\\', '/' });
+
+            // If there is no slash or backslash it is the root entry "C:\" or
+            // similar.
             if(slashPos == -1)
             {
                 parentIdx = Root;
@@ -139,7 +146,7 @@ namespace YellowCounter.FileSystemState.PathRedux
             var hashCode = newHashCode();
 
             // Take our index point, calculate all ancestors back to root
-            var sequence = buf.Retrieve(ancestorsAndSelf(idx).Reverse());
+            var sequence = buf.Retrieve(indicesFromRootTo(idx));
 
             foreach(var mem in sequence)
             {
@@ -153,10 +160,38 @@ namespace YellowCounter.FileSystemState.PathRedux
             return hash;
         }
 
+        /// <summary>
+        /// Copy the stored path for the given index to a newly allocated string.
+        /// </summary>
+        /// <param name="idx"></param>
+        /// <returns></returns>
         public string CreateString(int idx)
         {
-            return buf.CreateString(ancestorsAndSelf(idx));
+            // Take the index we are supplied with, and follow the parent, grandparent
+            // etc. so we get the indices of the filename, then the folder that is in,
+            // then the folder of the folder until we end up at C:\
+            // This gives us a ReadOnlySequence<char>, which we then pass to the
+            // CreateStringReverse() method which generates the string in the correct
+            // order.
+            return Retrieve(idx).CreateString();
         }
+
+        /// <summary>
+        /// Return the stored path for the given index as a sequence of ReadOnlyMemory&lt;char&gt;
+        /// </summary>
+        /// <param name="idx"></param>
+        /// <returns></returns>
+        public ReadOnlySequence<char> Retrieve(int idx)
+        {
+            return buf.Retrieve(indicesFromRootTo(idx));
+        }
+
+        /// <summary>
+        /// Indices which start at the root and end up at idx
+        /// </summary>
+        /// <param name="idx"></param>
+        /// <returns></returns>
+        private IEnumerable<int> indicesFromRootTo(int idx) => ancestorsAndSelf(idx).Reverse();
 
         /// <summary>
         /// Follow the parent, grandparent chain back to the root.
