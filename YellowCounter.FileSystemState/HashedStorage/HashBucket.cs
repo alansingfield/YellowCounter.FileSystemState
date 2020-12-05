@@ -39,11 +39,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <param name="options">Sizing options</param>
         public HashBucket(HashBucketOptions options)
         {
+            this.mem = new T[options.Capacity];
+
             this.capacity = options.Capacity;
-            this.chunkSize = options.ChunkSize;
-
-            this.mem = ArrayPool<T>.Shared.Rent(this.capacity);
-
             this.elementsInUse = new BitArray64(this.Capacity);
             this.softDeleted = new BitArray64(this.Capacity);
 
@@ -360,8 +358,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
             {
                 if(disposing)
                 {
-                    ArrayPool<T>.Shared.Return(this.mem);
-
                     elementsInUse?.Dispose();
                     softDeleted?.Dispose();
                 }
