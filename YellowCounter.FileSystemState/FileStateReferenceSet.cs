@@ -16,18 +16,14 @@ namespace YellowCounter.FileSystemState
 
         protected override int GetHashOfKey((int, int) key)
         {
-            // For testing we override the hashfunction with a deterministic one.
-            // For real usage we want the .NET one.
+            // For testing we can override the hash function.
             if(hashFunction != null)
                 return hashFunction(key);
-            
-            // The two values (directory idx / file idx) are in similar ranges so shift
-            // the directory by 16 bits so we clash every 65536
 
+            // Since the values of item1 / item2 are in similar ranges, bit shift them
+            // around so there are less hash collisions.
             return ((key.Item1 << 16) | (key.Item1 >> 16))
                 ^ ((key.Item2 << 8) | (key.Item2 >> 24));
-
-            return key.GetHashCode();
         }
 
         protected override (int, int) GetKey(FileState item)
