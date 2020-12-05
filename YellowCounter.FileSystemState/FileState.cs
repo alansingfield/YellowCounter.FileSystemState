@@ -9,8 +9,7 @@ namespace YellowCounter.FileSystemState
     {
         public int DirectoryRef;
         public int FilenameRef;
-        public DateTimeOffset LastWriteTimeUtc;
-        public long Length;
+        public int Signature;
         public FileStateFlags Flags;
     }
 

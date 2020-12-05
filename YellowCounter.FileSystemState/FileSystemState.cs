@@ -207,31 +207,29 @@ namespace YellowCounter.FileSystemState
                 .GroupBy(x => new
                 {
                     // Group by last write time, length and directory or filename
-                    x.LastWriteTimeUtc,
-                    x.Length,
+                    x.Signature,
                     Name = byName ? x.DirectoryRef : x.FilenameRef
                 },
                     (x, y) => new
                     {
                         // Return key fields, and list of all created files for the
                         // given (time, length, path) key
-                        x.LastWriteTimeUtc,
-                        x.Length,
+                        x.Signature,
                         x.Name,
                         Creates = y.ToList()
                     })
                 .ToList();
 
             var removesByTime = removals
-                .GroupBy(x => new { x.LastWriteTimeUtc, x.Length, Name = byName ? x.DirectoryRef : x.FilenameRef },
-                (x, y) => new { x.LastWriteTimeUtc, x.Length, x.Name, Removes = y.ToList() })
+                .GroupBy(x => new { x.Signature, Name = byName ? x.DirectoryRef : x.FilenameRef },
+                (x, y) => new { x.Signature, x.Name, Removes = y.ToList() })
                 .ToList();
 
             // Join creates and removes by (time, length, directory), then filter to
             // only those matches which are unambiguous.
             return createsByTime.Join(removesByTime,
-                x => new { x.LastWriteTimeUtc, x.Length, x.Name },
-                x => new { x.LastWriteTimeUtc, x.Length, x.Name },
+                x => new { x.Signature, x.Name },
+                x => new { x.Signature, x.Name },
                 (x, y) => new { x.Creates, y.Removes }
                 )
                 .Where(x => x.Creates.Count == 1 && x.Removes.Count == 1)

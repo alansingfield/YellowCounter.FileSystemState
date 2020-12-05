@@ -63,10 +63,17 @@ namespace YellowCounter.FileSystemState
             fileState.DirectoryRef =        dirRef;
             fileState.FilenameRef =         filenameRef;
 
-            fileState.LastWriteTimeUtc =    input.LastWriteTimeUtc;
-            fileState.Length =              input.Length;
+            fileState.Signature = makeSignature(input.LastWriteTimeUtc, input.Length);
 
             return fileState;
+        }
+
+        private static int makeSignature(DateTimeOffset lastWriteTimeUtc, long length)
+        {
+            // Combine datetime and length into 32 bit hash.
+            // TODO - don't rely on framework implementation, we want this to be
+            // deterministic across runs.
+            return HashCode.Combine(lastWriteTimeUtc.UtcTicks, length);
         }
 
         private void markExisting(ref FileState fs, in FileSystemEntry input)
@@ -74,15 +81,15 @@ namespace YellowCounter.FileSystemState
             // Mark that we've seen the file.
             fs.Flags |= FileStateFlags.Seen;
 
+            int signature = makeSignature(input.LastWriteTimeUtc, input.Length);
+
             // Has it changed since we last saw it?
-            if(fs.LastWriteTimeUtc != input.LastWriteTimeUtc
-                || fs.Length != input.Length)
+            if(fs.Signature != signature)
             {
                 fs.Flags |= FileStateFlags.Changed;
 
                 // Update the last write time / file length.
-                fs.LastWriteTimeUtc = input.LastWriteTimeUtc;
-                fs.Length = input.Length;
+                fs.Signature = signature;
             }
         }
 
