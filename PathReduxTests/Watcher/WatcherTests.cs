@@ -46,7 +46,7 @@ namespace PathReduxTests.Watcher
         [TestMethod]
         public void FileSystemWatcherBigDir()
         {
-            string currentDir = @"C:\Users\SpanWork";
+            string currentDir = @"C:\";
 
             FileSystemState watcher = new FileSystemState(currentDir, options: new EnumerationOptions { RecurseSubdirectories = true });
             watcher.LoadState();

@@ -31,8 +31,6 @@ namespace YellowCounter.FileSystemState
                 NewHashCode = () => new StandardHashCode(),
                 InitialCharCapacity = 1024,
                 InitialHashCapacity = 256,
-                LinearSearchLimit = 128,
-                HashBucketMaxChain = 128,
                 HashBucketInitialCapacity = 64
             });
 
