@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
@@ -256,6 +257,11 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <param name="hash"></param>
         /// <returns></returns>
         public int ProbeDepth(int hash) => probeDepthFromSlot(slotFromHash(hash));
+
+        public double AverageProbeDepth()
+        {
+            return this.chunkProbeDepth.Average();
+        }
 
         /// <summary>
         /// Enumerate items stored under the given hash. Note that

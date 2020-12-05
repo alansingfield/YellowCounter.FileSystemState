@@ -20,6 +20,12 @@ namespace YellowCounter.FileSystemState
             // For real usage we want the .NET one.
             if(hashFunction != null)
                 return hashFunction(key);
+            
+            // The two values (directory idx / file idx) are in similar ranges so shift
+            // the directory by 16 bits so we clash every 65536
+
+            return ((key.Item1 << 16) | (key.Item1 >> 16))
+                ^ ((key.Item2 << 8) | (key.Item2 >> 24));
 
             return key.GetHashCode();
         }

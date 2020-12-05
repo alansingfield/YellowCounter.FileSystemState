@@ -22,6 +22,7 @@ namespace YellowCounter.FileSystemState
             {
                 Capacity = 100,
                 ChunkSize = 32,
+                FillFactor = 70,
             });
 
             this.pathStorage = pathStorage;
