@@ -70,10 +70,19 @@ namespace YellowCounter.FileSystemState
 
         private static int makeSignature(DateTimeOffset lastWriteTimeUtc, long length)
         {
-            // Combine datetime and length into 32 bit hash.
-            // TODO - don't rely on framework implementation, we want this to be
-            // deterministic across runs.
-            return HashCode.Combine(lastWriteTimeUtc.UtcTicks, length);
+            unchecked
+            {
+                // Combine datetime and length into 32 bit hash.
+                ulong uticks = (ulong)lastWriteTimeUtc.UtcTicks;
+                ulong ulength = (ulong)length;
+            
+                return
+                      (int)(uticks & 0xFFFFFFFF) 
+                    ^ (int)(uticks >> 32)
+                    ^ (int)(ulength & 0xFFFFFFFF)
+                    ^ (int)(ulength >> 32)
+                ;
+            }
         }
 
         private void markExisting(ref FileState fs, in FileSystemEntry input)
