@@ -167,12 +167,6 @@ namespace YellowCounter.FileSystemState.PathRedux
         /// <returns></returns>
         public string CreateString(int idx)
         {
-            // Take the index we are supplied with, and follow the parent, grandparent
-            // etc. so we get the indices of the filename, then the folder that is in,
-            // then the folder of the folder until we end up at C:\
-            // This gives us a ReadOnlySequence<char>, which we then pass to the
-            // CreateStringReverse() method which generates the string in the correct
-            // order.
             return Retrieve(idx).CreateString();
         }
 
