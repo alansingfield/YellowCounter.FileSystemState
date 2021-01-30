@@ -187,46 +187,6 @@ namespace PathReduxTests.PathRedux
             }
         }
 
-        [TestMethod]
-        public void HashBucketDeleteByRef()
-        {
-            var hb = new HashBucket<decimal>(new HashBucketOptions()
-            {
-                Capacity = 4,
-            });
-
-            var indices = new int[4];
-
-            hb.TryStore(3, 111m, out indices[0]).ShouldBe(true);
-            hb.TryStore(3, 222m, out indices[1]).ShouldBe(true);
-
-            int iter = 0;
-            foreach(ref var itm in hb.Retrieve(3))
-            {
-                // Delete the first item we find in-situ
-                if(iter == 0)
-                {
-                    itm.ShouldBe(111m);
-
-                    // We are allowed to delete in-situ, while iterating!
-                    // Try that with a normal C# list...
-                    hb.Delete(ref itm);
-                }
-
-                iter++;
-            }
-
-            // Verify the whole contents. 
-            var result = hb.ToArray();
-
-            //ShouldlyTest.Gen(result, nameof(result));
-
-            {
-                result.ShouldNotBeNull();
-                result.Count().ShouldBe(1);
-                result[0].ShouldBe(222m);
-            }
-        }
 
 
         [TestMethod]

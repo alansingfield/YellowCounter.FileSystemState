@@ -128,17 +128,18 @@ namespace PathReduxTests.HashedStorage
         [TestMethod]
         public void ReferenceSetKeyMissingSoftDeleted()
         {
-            var refset = new AbcReferenceSet();
+            false.ShouldBeTrue();
+            //var refset = new AbcReferenceSet();
 
-            refset.Add(101, new Abc(101) { Value = 1000m });
-            ref var itm2 = ref refset.Add(102, new Abc(102) { Value = 2000m });
+            //refset.Add(101, new Abc(101) { Value = 1000m });
+            //ref var itm2 = ref refset.Add(102, new Abc(102) { Value = 2000m });
 
-            refset.Delete(ref itm2);
+            //refset.DeleteAt(ref itm2);
 
-            Should.Throw(() =>
-            {
-                ref var itm = ref refset[102];
-            }, typeof(ArgumentException)).Message.ShouldBe("Key was not found in the set (Parameter 'key')");
+            //Should.Throw(() =>
+            //{
+            //    ref var itm = ref refset[102];
+            //}, typeof(ArgumentException)).Message.ShouldBe("Key was not found in the set (Parameter 'key')");
         }
 
         [TestMethod]

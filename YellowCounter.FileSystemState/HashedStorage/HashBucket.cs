@@ -23,7 +23,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
         private readonly int capacity;
         private readonly BitArray64 elementsInUse;
         private readonly BitArray64 softDeleted;
-        private readonly int sizeofT;
         private int occupancy;
         private int usage;
         private readonly int chunkSize;
@@ -48,8 +47,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
             this.occupancy = 0;
             this.usage = 0;
-
-            this.sizeofT = Unsafe.SizeOf<T>();
 
             this.chunkSize = options.ChunkSize;
 
@@ -204,32 +201,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
             deleteAtInternal(index);
         }
 
-        /// <summary>
-        /// Soft-delete the specified item. The item will remain in the internal
-        /// array. If you continue to use the ref to this item after deleting, you
-        /// must ensure that you do not call TryStore() as this could write a new
-        /// item in that slot.
-        /// </summary>
-        /// <param name="item"></param>
-        public void Delete(ref T item)
-        {
-            DeleteAt(IndexOf(ref item));
-        }
-
-        /// <summary>
-        /// Given a ref to an item (for example as found by enumerating or calling
-        /// Retrieve() return the integer position within our array.
-        /// </summary>
-        /// <param name="item">Reference to item</param>
-        /// <returns>Integer position from 0..capacity-1</returns>
-        public int IndexOf(ref T item)
-        {
-            // Calculate the array index of item within mem
-            return (int)Unsafe.ByteOffset(
-                ref this.mem[0], ref item)
-                / this.sizeofT;
-        }
-
         private void deleteAtInternal(int index)
         {
             if(!softDeleted[index])
@@ -284,6 +255,34 @@ namespace YellowCounter.FileSystemState.HashedStorage
             // Enumerate from this slot onwards.
             return new Segment(new DualEnumerator(
                 mem,
+                elementsInUse,
+                softDeleted,
+                slotA,
+                slotB,
+                probeDepth,
+                capacity));
+        }
+
+        /// <summary>
+        /// Enumerate items stored under the given hash. Note that
+        /// due to hash collisions, you will also be presented with items which do
+        /// NOT match the hash. It is your responsibility to ignore these.
+        /// </summary>
+        /// <param name="hash"></param>
+        /// <returns></returns>
+        public DualIndexSegment RetrieveIndices(int hash)
+        {
+            // Calculate the first slot our result could be in.
+            int slotA = slotFromHash(hash);
+
+            // Run the permutation function to determine the second slot
+            int slotB = slotFromHash(Permute(hash));
+
+            // Calculate how far the maximum search depth is
+            int probeDepth = probeDepthFromSlot(slotA);
+
+            // Enumerate from this slot onwards.
+            return new DualIndexSegment(new DualIndexEnumerator(
                 elementsInUse,
                 softDeleted,
                 slotA,

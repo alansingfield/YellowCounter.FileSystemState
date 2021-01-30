@@ -46,6 +46,8 @@ namespace PathReduxTests.Watcher
         [TestMethod]
         public void FileSystemWatcherBigDir()
         {
+            false.ShouldBeTrue();
+
             string currentDir = @"C:\";
 
             FileSystemState watcher = new FileSystemState(currentDir, options: new EnumerationOptions { RecurseSubdirectories = true });

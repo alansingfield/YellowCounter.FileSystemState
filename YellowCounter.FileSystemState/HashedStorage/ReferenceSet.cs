@@ -191,11 +191,13 @@ namespace YellowCounter.FileSystemState.HashedStorage
         {
             int hash = GetHashOfKey(key);
 
-            foreach(ref TValue item in hashBucket.Retrieve(hash))
+            foreach(var idx in hashBucket.RetrieveIndices(hash))
             {
+                TValue item = hashBucket[idx];
+
                 if(hashAndMatch(key, hash, item))
                 {
-                    return hashBucket.IndexOf(ref item);
+                    return idx;
                 }
             }
             return -1;
@@ -203,25 +205,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
         public ref TValue ElementAt(int index) => ref hashBucket[index];
 
-        public bool Delete(TKey key)
-        {
-            int hash = GetHashOfKey(key);
-
-            foreach(ref TValue item in hashBucket.Retrieve(hash))
-            {
-                if(hashAndMatch(key, hash, item))
-                {
-                    hashBucket.Delete(ref item);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public void Delete(ref TValue value)
-        {
-            hashBucket.Delete(ref value);
-        }
 
         public void DeleteAt(int idx)
         {
