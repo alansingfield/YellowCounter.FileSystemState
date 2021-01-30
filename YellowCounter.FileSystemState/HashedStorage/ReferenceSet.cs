@@ -223,6 +223,11 @@ namespace YellowCounter.FileSystemState.HashedStorage
             hashBucket.Delete(ref value);
         }
 
+        public void DeleteAt(int idx)
+        {
+            hashBucket.DeleteAt(idx);
+        }
+
         public bool ContainsKey(TKey key)
         {
             int hash = GetHashOfKey(key);
@@ -302,6 +307,11 @@ namespace YellowCounter.FileSystemState.HashedStorage
         public void Dispose()
         {
             ((IDisposable)hashBucket)?.Dispose();
+        }
+
+        public HashBucket<TValue>.IndexSegment AllIndices()
+        {
+            return hashBucket.AllIndices();
         }
 
         /// <summary>

@@ -107,13 +107,17 @@ namespace YellowCounter.FileSystemState
 
         public void Sweep()
         {
-            foreach(ref var fileState in this.dict)
+            // Use the index-based enumeration because we need to delete, deletion
+            // needs the index.
+            foreach(int idx in dict.AllIndices())
             {
+                ref var fileState = ref dict.ElementAt(idx);
+
                 // All elements that have not been seen on the last sweep are now
                 // no longer any use to us and can be deleted.
                 if(!fileState.Flags.HasFlag(FileStateFlags.Seen))
                 {
-                    dict.Delete(ref fileState);
+                    dict.DeleteAt(idx);
                 }
                 else
                 {

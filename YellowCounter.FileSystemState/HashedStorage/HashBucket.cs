@@ -358,6 +358,18 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 capacity);          // Enumerate to the end.
         }
 
+        public IndexSegment AllIndices()
+        {
+            int scanLimit = this.occupancy == 0 ? 0 : this.capacity;
+
+            return new IndexSegment(new IndexEnumerator(
+                this.elementsInUse,
+                this.softDeleted,
+                0,                  // Start at the beginning
+                scanLimit,          // All the elements
+                capacity));         // Enumerate to the end.
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if(!disposedValue)

@@ -865,6 +865,43 @@ namespace PathReduxTests.PathRedux
         }
 
 
+        [TestMethod]
+        public void HashBucketIndexEnumerate()
+        {
+            var hb = new HashBucket<decimal>(new HashBucketOptions()
+            {
+                Capacity = 4,
+            });
 
+            hb.TryStore(1, 123m).ShouldBe(true);
+            hb.TryStore(0, 456m).ShouldBe(true);
+
+
+            var result = new
+            {
+                Decimals = new List<decimal>(),
+                Indices = new List<int>(),
+            };  
+
+            foreach(int idx in hb.AllIndices())
+            {
+                result.Indices.Add(idx);
+                result.Decimals.Add(hb[idx]);
+            }
+
+            //ShouldlyTest.Gen(result, nameof(result));
+
+            {
+                result.ShouldNotBeNull();
+                result.Decimals.ShouldNotBeNull();
+                result.Decimals.Count().ShouldBe(2);
+                result.Decimals[0].ShouldBe(456m);
+                result.Decimals[1].ShouldBe(123m);
+                result.Indices.ShouldNotBeNull();
+                result.Indices.Count().ShouldBe(2);
+                result.Indices[0].ShouldBe(0);
+                result.Indices[1].ShouldBe(1);
+            }
+        }
     }
 }
