@@ -70,35 +70,45 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// </summary>
         /// <param name="key">Unique key to store against</param>
         /// <param name="value">Value to store</param>
+        /// <param name="index">Index where item was stored</param>
         /// <returns>Reference to the added item within this set</returns>
-        public ref TValue Add(TKey key, TValue value)
+        public ref TValue Add(TKey key, TValue value, out int index)
         {
             int hash = GetHashOfKey(key);
 
             if(containsKeyInternal(key, hash))
                 throw new ArgumentException("The key is already in the set", nameof(key));
 
-            return ref tryStoreInternal(value, hash);
+            return ref tryStoreInternal(value, hash, out index);
         }
 
+        private static int dummy;
+        public ref TValue Add(TKey key, TValue value)
+        {
+            // The dummy variable will get overwritten by each caller, but as it is
+            // not returned, I can't see this being a problem.
+            return ref Add(key, value, out dummy);
+        }
 
-        private ref TValue tryStoreInternal(TValue value, int hash)
+        private ref TValue tryStoreInternal(TValue value, int hash, out int index)
         {
             // make sure we have not exceeded the fillfactor limit.
             if(hashBucket.Usage < usageLimit)
             {
-                if(hashBucket.TryStore(hash, value, out int position))
+                if(hashBucket.TryStore(hash, value, out int newIndex1))
                 {
-                    return ref hashBucket[position];
+                    index = newIndex1;
+                    return ref hashBucket[newIndex1];
                 }
             }
 
             // Rebuild the HashBucket and store the new item in there. This will
             // throw an exception if after resizing it still can't fit in - not
             // sure how that could happen...
-            rebuildLookup(headroom: 1, value, out int newPosition);
+            rebuildLookup(headroom: 1, value, out int newIndex2);
 
-            return ref hashBucket[newPosition];
+            index = newIndex2;
+            return ref hashBucket[newIndex2];
         }
 
 
