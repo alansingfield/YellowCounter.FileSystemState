@@ -110,13 +110,13 @@ namespace YellowCounter.FileSystemState
                 .Select(x => newFileChange(x.DirectoryRef, x.FilenameRef, WatcherChangeTypes.Deleted))
                 ;
 
-            var renameResults = renames.Select(x => newFileChange2(
-                x.NewFile.DirectoryRef,
-                x.NewFile.FilenameRef,
-                WatcherChangeTypes.Renamed,
-                x.OldFile.DirectoryRef,
-                x.OldFile.FilenameRef))
-                ;
+            var renameResults = renames.Select(x => new FileChange(
+                    pathStorage.CreateString(x.NewFile.DirectoryRef),
+                    pathStorage.CreateString(x.NewFile.FilenameRef),
+                    WatcherChangeTypes.Renamed,
+                    pathStorage.CreateString(x.OldFile.DirectoryRef),
+                    pathStorage.CreateString(x.OldFile.FilenameRef)
+                    ));
             
             var result = new List<FileChange>();
 
@@ -136,23 +136,6 @@ namespace YellowCounter.FileSystemState
                     pathStorage.CreateString(directoryRef),
                     pathStorage.CreateString(filenameRef),
                     changeType);
-            }
-
-            FileChange newFileChange2(
-                int newDirectoryRef,
-                int newFilenameRef,
-                WatcherChangeTypes changeType,
-                int oldDirectoryRef,
-                int oldFilenameRef
-                )
-            {
-                return new FileChange(
-                    pathStorage.CreateString(newDirectoryRef),
-                    pathStorage.CreateString(newFilenameRef),
-                    changeType,
-                    pathStorage.CreateString(oldDirectoryRef),
-                    pathStorage.CreateString(oldFilenameRef)
-                    );
             }
         }
 
