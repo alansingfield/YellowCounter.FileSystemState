@@ -34,7 +34,5 @@ namespace YellowCounter.FileSystemState.HashedStorage
             uint residue = (uint)(((ulong)x * x) % prime);
             return (x <= primeDiv2) ? residue : prime - residue;
         }
-
-        private static uint prng(uint x) => permuteQPR(permuteQPR(x) ^ 0x5bf03635);
     }
 }
