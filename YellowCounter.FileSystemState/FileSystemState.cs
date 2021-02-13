@@ -53,7 +53,7 @@ namespace YellowCounter.FileSystemState
 
 
         // This function walks all watched files, collects changes, and updates state
-        public IEnumerable<FileChange> GetChanges()
+        public IList<FileChange> GetChanges()
         {
             // Get the raw file changes, either create, file change or removal.
             var (creates, changes, removals) = getFileChanges();
