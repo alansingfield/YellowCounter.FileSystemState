@@ -16,11 +16,7 @@ namespace YellowCounter.FileSystemState.PathRedux
         public HashedCharBuffer(HashedCharBufferOptions options)
         {
             charBuffer = new CharBuffer(options.InitialCharCapacity);
-            hashLookup = new HashBucket<int>(new HashBucketOptions()
-            {
-                Capacity = options.InitialHashCapacity,
-                ChunkSize = 32,
-            });
+            hashLookup = new HashBucket<int>(options.HashBucketOptions);
 
             this.newHashCode = options.NewHashCode;
         }

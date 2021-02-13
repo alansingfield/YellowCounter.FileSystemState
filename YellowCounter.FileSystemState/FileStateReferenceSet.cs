@@ -38,7 +38,7 @@ namespace YellowCounter.FileSystemState
         }
     }
 
-    internal class FileStateReferenceSetOptions : SetByRefOptions
+    internal class FileStateReferenceSetOptions : ReferenceSetOptions
     {
         public Func<(int, int), int> HashFunction { get; set; }
     }

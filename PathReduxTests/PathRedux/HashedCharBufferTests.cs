@@ -5,6 +5,7 @@ using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using YellowCounter.FileSystemState.HashedStorage;
 using YellowCounter.FileSystemState.PathRedux;
 
 namespace PathReduxTests.PathRedux
@@ -20,7 +21,10 @@ namespace PathReduxTests.PathRedux
             {
                 NewHashCode = () => new DeterministicHashCode(),
                 InitialCharCapacity = 20,
-                InitialHashCapacity = 16,
+                HashBucketOptions = new HashBucketOptions()
+                {
+                    Capacity = 16,
+                }
             });
 
             buf.Store("Hello");
@@ -40,7 +44,10 @@ namespace PathReduxTests.PathRedux
             {
                 NewHashCode = () => new ControllableHashCode(),
                 InitialCharCapacity = 20,
-                InitialHashCapacity = 16,
+                HashBucketOptions = new HashBucketOptions()
+                {
+                    Capacity = 16,
+                }
             });
 
             buf.Store("1,Hello");

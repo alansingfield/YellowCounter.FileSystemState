@@ -28,10 +28,21 @@ namespace YellowCounter.FileSystemState
 
             this.pathStorage = new PathStorage(new PathStorageOptions()
             {
-                NewHashCode = () => new StandardHashCode(),
-                InitialCharCapacity = 1024,
-                InitialHashCapacity = 256,
-                HashBucketInitialCapacity = 64
+                HashedCharBufferOptions = new HashedCharBufferOptions()
+                {
+                    InitialCharCapacity = 1024,
+                    HashBucketOptions = new HashedStorage.HashBucketOptions()
+                    {
+                        Capacity = 256,
+                        ChunkSize = 32,
+                    },
+                    NewHashCode = () => new StandardHashCode(),
+                },
+                HashBucketOptions = new HashedStorage.HashBucketOptions()
+                {
+                    Capacity = 64,
+                    ChunkSize = 32,
+                }
             });
 
             _state = new PathToFileStateHashtable(this.pathStorage);
@@ -222,21 +233,6 @@ namespace YellowCounter.FileSystemState
                 ))
                 .ToList();
         }
-
-
-
-        protected internal virtual bool ShouldIncludeEntry(ref FileSystemEntry entry)
-        {
-            if (entry.IsDirectory) return false;
-
-            bool ignoreCase = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
-            if (FileSystemName.MatchesSimpleExpression(Filter, entry.FileName, ignoreCase: ignoreCase))
-                return true;
-
-            return false;
-        }
-
-        protected internal virtual bool ShouldRecurseIntoEntry(ref FileSystemEntry entry) => true;
 
     }
 }

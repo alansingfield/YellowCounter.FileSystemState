@@ -5,6 +5,7 @@ using System.Text;
 using YellowCounter.FileSystemState.PathRedux;
 using Shouldly;
 using PathReduxTests.HashCodes;
+using YellowCounter.FileSystemState.HashedStorage;
 
 namespace PathReduxTests.PathRedux
 {
@@ -17,10 +18,19 @@ namespace PathReduxTests.PathRedux
             // Trying to trigger it rebuilding the text -> character buffer
             var ps = new PathStorage(new PathStorageOptions()
             {
-                NewHashCode = () => new DeterministicHashCode(),
-                InitialCharCapacity = 4,
-                InitialHashCapacity = 16,
-                HashBucketInitialCapacity = 10,
+                HashedCharBufferOptions = new HashedCharBufferOptions()
+                {
+                    InitialCharCapacity = 4,
+                    HashBucketOptions = new HashBucketOptions()
+                    {
+                        Capacity = 16,
+                    },
+                    NewHashCode = () => new DeterministicHashCode(),
+                },
+                HashBucketOptions = new HashBucketOptions()
+                {
+                    Capacity = 10, 
+                }
             });
 
             var results = new List<int>();
@@ -44,10 +54,19 @@ namespace PathReduxTests.PathRedux
             // Trying to trigger it rebuilding the text -> character buffer
             var ps = new PathStorage(new PathStorageOptions()
             {
-                NewHashCode = () => new DeterministicHashCode(),
-                InitialCharCapacity = 4,
-                InitialHashCapacity = 16,
-                HashBucketInitialCapacity = 10,
+                HashedCharBufferOptions = new HashedCharBufferOptions()
+                {
+                    InitialCharCapacity = 4,
+                    HashBucketOptions = new HashBucketOptions()
+                    {
+                        Capacity = 16,
+                    },
+                    NewHashCode = () => new DeterministicHashCode(),
+                },
+                HashBucketOptions = new HashBucketOptions()
+                {
+                    Capacity = 10,
+                }
             });
 
             var results = new List<int>();

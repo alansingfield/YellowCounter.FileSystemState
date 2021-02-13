@@ -3,7 +3,7 @@ using YellowCounter.FileSystemState.HashedStorage;
 
 namespace YellowCounter.FileSystemState.HashedStorage
 {
-    public class SetByRefOptions : HashBucketOptions
+    public class ReferenceSetOptions : HashBucketOptions
     {
         public int? FillFactor { get; set; }
     }
@@ -16,9 +16,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
         private float fillFactor;
         private int usageLimit;
 
-        public ReferenceSet(SetByRefOptions options = null)
+        public ReferenceSet(ReferenceSetOptions options = null)
         {
-            options ??= new SetByRefOptions()
+            options ??= new ReferenceSetOptions()
             {
                 Capacity = 256,
             };

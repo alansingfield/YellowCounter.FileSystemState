@@ -33,20 +33,11 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         public PathStorage(PathStorageOptions options)
         {
-            this.newHashCode = options.NewHashCode;
+            this.newHashCode = options.HashedCharBufferOptions.NewHashCode;
 
-            buf = new HashedCharBuffer(new HashedCharBufferOptions()
-            {
-                NewHashCode = options.NewHashCode,
-                InitialCharCapacity = options.InitialCharCapacity,
-                InitialHashCapacity = options.InitialHashCapacity,
-            });
+            buf = new HashedCharBuffer(options.HashedCharBufferOptions);
 
-            buckets = new HashBucket<int>(new HashBucketOptions()
-            {
-                Capacity = options.InitialHashCapacity,
-                ChunkSize = 32,
-            });
+            buckets = new HashBucket<int>(options.HashBucketOptions);
 
             entries = new List<Entry>();
         }
