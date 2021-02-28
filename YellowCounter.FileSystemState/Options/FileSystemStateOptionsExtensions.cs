@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using YellowCounter.FileSystemState.Filter;
 using YellowCounter.FileSystemState.HashCodes;
@@ -26,6 +27,22 @@ namespace YellowCounter.FileSystemState.Options
 
             return options;
         }
+        public static FileSystemStateOptions WithDirectoryFilter(this FileSystemStateOptions options, string pattern)
+        {
+            if(pattern == null)
+                throw new ArgumentNullException(nameof(pattern));
+
+            options.DirectoryFilter = new DirectoryFilter() { Pattern = pattern };
+
+            return options;
+        }
+
+        public static FileSystemStateOptions WithDirectoryFilter(this FileSystemStateOptions options, IDirectoryFilter directoryFilter)
+        {
+            options.DirectoryFilter = directoryFilter ?? throw new ArgumentNullException(nameof(directoryFilter));
+
+            return options;
+        }
 
         public static FileSystemStateOptions WithRecurseSubdirectories(this FileSystemStateOptions options, bool recurseSubdirectories = true)
         {
@@ -34,10 +51,24 @@ namespace YellowCounter.FileSystemState.Options
             return options;
         }
 
+        public static FileSystemStateOptions WithIgnoreInaccessible(this FileSystemStateOptions options, bool ignoreInaccessible)
+        {
+            options.IgnoreInaccessible = ignoreInaccessible;
+
+            return options;
+        }
+
+        public static FileSystemStateOptions WithAttributesToSkip(this FileSystemStateOptions options, FileAttributes attributesToSkip)
+        {
+            options.AttributesToSkip = attributesToSkip;
+
+            return options;
+        }
 
         internal static FileSystemStateOptions ApplyDefaults(this FileSystemStateOptions options)
         {
             options.Filter ??= new FilenameFilter();
+            options.DirectoryFilter ??= new DirectoryFilter();
 
             options.PathStorageOptions ??= new PathStorageOptions();
 

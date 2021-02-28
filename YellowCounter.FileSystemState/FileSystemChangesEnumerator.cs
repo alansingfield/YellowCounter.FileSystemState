@@ -14,15 +14,18 @@ namespace YellowCounter.FileSystemState
     internal class FileSystemChangeEnumerator : FileSystemEnumerator<object>
     {
         private readonly IFilenameFilter filter;
+        private readonly IDirectoryFilter directoryFilter;
         private IAcceptFileSystemEntry acceptFileSystemEntry;
 
         public FileSystemChangeEnumerator(
             string path,
             FileSystemStateOptions options,
             IAcceptFileSystemEntry acceptFileSystemEntry)
-            : base(path, options)
+            : base(path, toEnumerationOptions(options))
         {
             this.filter = options.Filter;
+            this.directoryFilter = options.DirectoryFilter;
+
             this.acceptFileSystemEntry = acceptFileSystemEntry;
         }
 
@@ -47,6 +50,19 @@ namespace YellowCounter.FileSystemState
             return filter.ShouldInclude(entry.FileName);
         }
 
-        protected override bool ShouldRecurseIntoEntry(ref FileSystemEntry entry) => true;
+        protected override bool ShouldRecurseIntoEntry(ref FileSystemEntry entry)
+        {
+            return directoryFilter.ShouldInclude(entry.FileName);
+        }
+
+        private static EnumerationOptions toEnumerationOptions(FileSystemStateOptions options)
+        {
+            return new EnumerationOptions() 
+            {
+                RecurseSubdirectories = options.RecurseSubdirectories,
+                IgnoreInaccessible = options.IgnoreInaccessible,
+                AttributesToSkip = options.AttributesToSkip,
+            };
+        }
     }
 }

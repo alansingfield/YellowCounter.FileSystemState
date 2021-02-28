@@ -6,11 +6,11 @@ using System.Text;
 
 namespace YellowCounter.FileSystemState.Filter
 {
-    public class FilenameFilter : IFilenameFilter
+    public class DirectoryFilter : IDirectoryFilter
     {
         private static bool ignoreCase;
 
-        static FilenameFilter()
+        static DirectoryFilter()
         {
             ignoreCase = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 || RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
@@ -18,12 +18,12 @@ namespace YellowCounter.FileSystemState.Filter
 
         public string Pattern { get; set; } = "*";
 
-        public bool ShouldInclude(ReadOnlySpan<char> filename)
+        public bool ShouldInclude(ReadOnlySpan<char> directory)
         {
             if(this.Pattern == "*")
                 return true;
 
-            return FileSystemName.MatchesSimpleExpression(this.Pattern, filename, ignoreCase);
+            return FileSystemName.MatchesSimpleExpression(this.Pattern, directory, ignoreCase);
         }
     }
 }

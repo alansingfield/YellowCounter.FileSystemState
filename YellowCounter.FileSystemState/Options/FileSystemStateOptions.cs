@@ -9,9 +9,14 @@ using YellowCounter.FileSystemState.PathRedux;
 
 namespace YellowCounter.FileSystemState.Options
 {
-    public class FileSystemStateOptions : EnumerationOptions
+    public class FileSystemStateOptions
     {
+        public bool RecurseSubdirectories { get; set; }
+        public bool IgnoreInaccessible { get; set; } = true;
+        public FileAttributes AttributesToSkip { get; set; } = FileAttributes.Hidden | FileAttributes.System;
+
         public IFilenameFilter Filter { get; set; }
+        public IDirectoryFilter DirectoryFilter { get; set; }
         public PathStorageOptions PathStorageOptions { get; set; }
     }
 }
