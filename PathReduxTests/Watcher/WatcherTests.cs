@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using YellowCounter.FileSystemState;
 using Shouldly;
+using YellowCounter.FileSystemState.Options;
 
 namespace PathReduxTests.Watcher
 {
@@ -22,7 +23,7 @@ namespace PathReduxTests.Watcher
                 File.WriteAllText(Path.Combine(dir, "text1.txt"), "Hello");
                 File.WriteAllText(Path.Combine(dir, "blah.txt"), "Hello");
 
-                var watcher = new FileSystemState(dir, options: new EnumerationOptions { RecurseSubdirectories = true });
+                var watcher = new FileSystemState(dir, new FileSystemStateOptions().WithRecurseSubdirectories(true));
                 watcher.LoadState();
 
                 var q = watcher.GetChanges();
@@ -50,7 +51,7 @@ namespace PathReduxTests.Watcher
 
             string currentDir = @"C:\";
 
-            FileSystemState watcher = new FileSystemState(currentDir, options: new EnumerationOptions { RecurseSubdirectories = true });
+            FileSystemState watcher = new FileSystemState(currentDir, new FileSystemStateOptions().WithRecurseSubdirectories(true));
             watcher.LoadState();
 
             var q = watcher.GetChanges();

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Xunit;
 using YellowCounter.FileSystemState;
+using YellowCounter.FileSystemState.Options;
 
 public partial class FileSystemStateUnitTests
 {
@@ -12,8 +13,8 @@ public partial class FileSystemStateUnitTests
         string path = Environment.CurrentDirectory;
         var watcher = new FileSystemState(path);
         Assert.Equal(path, watcher.RootDir);
-        Assert.Equal("*", watcher.Filter);
-        Assert.NotNull(watcher.EnumerationOptions);
+       // Assert.Equal("*", watcher.Filter);
+        Assert.NotNull(watcher.Options);
     }
 
     [Fact]
@@ -21,23 +22,23 @@ public partial class FileSystemStateUnitTests
     {
         string currentDir = Directory.GetCurrentDirectory();
         const string filter = "*.csv";
-        var watcher = new FileSystemState(currentDir, filter, new EnumerationOptions { RecurseSubdirectories = true });
+        var watcher = new FileSystemState(currentDir, filter, new FileSystemStateOptions().WithRecurseSubdirectories());
 
         Assert.Equal(currentDir, watcher.RootDir);
-        Assert.Equal(filter, watcher.Filter);
-        Assert.True(watcher.EnumerationOptions.RecurseSubdirectories);
+        //Assert.Equal(filter, watcher.Filter);
+        Assert.True(watcher.Options.RecurseSubdirectories);
     }
 
-    [Fact]
-    public static void FileSystemWatcher_ctor_Null()
-    {
-        // Not valid
-        Assert.Throws<ArgumentNullException>("rootDir", () => new FileSystemState(null));
-        Assert.Throws<ArgumentNullException>("filter", () => new FileSystemState(Environment.CurrentDirectory, null));
+    //[Fact]
+    //public static void FileSystemWatcher_ctor_Null()
+    //{
+    //    // Not valid
+    //    Assert.Throws<ArgumentNullException>("rootDir", () => new FileSystemState(null));
+    //    //Assert.Throws<ArgumentNullException>("filter", () => new FileSystemState(Environment.CurrentDirectory, null));
 
-        // Valid
-        var watcher = new FileSystemState(Environment.CurrentDirectory, options: null);
-    }
+    //    // Valid
+    //    var watcher = new FileSystemState(Environment.CurrentDirectory, options: null);
+    //}
 
     [Fact]
     public static void FileSystemWatcher_ctor_PathDoesNotExist()
@@ -171,7 +172,7 @@ public partial class FileSystemStateUnitTests
         string fullName = Path.Combine(currentDir, fileName);
         string newName = Path.Combine(subDir, fileName);
 
-        FileSystemState watcher = new FileSystemState(currentDir, options: new EnumerationOptions() { RecurseSubdirectories = true });
+        FileSystemState watcher = new FileSystemState(currentDir, new FileSystemStateOptions().WithRecurseSubdirectories());
 
         Directory.CreateDirectory(subDir);
 
@@ -255,7 +256,7 @@ public partial class FileSystemStateUnitTests
         string subDirectory = new DirectoryInfo(currentDir).CreateSubdirectory("sub").FullName;
         string fullName = Path.Combine(subDirectory, fileName);
 
-        FileSystemState watcher = new FileSystemState(currentDir, options: new EnumerationOptions { RecurseSubdirectories = false });
+        FileSystemState watcher = new FileSystemState(currentDir, new FileSystemStateOptions().WithRecurseSubdirectories(false));
         watcher.LoadState();
         using (FileStream file = File.Create(fullName)) { }
         var changes = watcher.GetChanges();
@@ -278,7 +279,7 @@ public partial class FileSystemStateUnitTests
         string subDirectory = new DirectoryInfo(currentDir).CreateSubdirectory("sub").FullName;
         string fullName = Path.Combine(subDirectory, fileName);
 
-        FileSystemState watcher = new FileSystemState(currentDir, options: new EnumerationOptions { RecurseSubdirectories = true });
+        FileSystemState watcher = new FileSystemState(currentDir, new FileSystemStateOptions().WithRecurseSubdirectories(true) );
         watcher.LoadState();
         using (FileStream file = File.Create(fullName)) { }
         var changes = watcher.GetChanges();

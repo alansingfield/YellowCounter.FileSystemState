@@ -7,52 +7,44 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Linq;
 using YellowCounter.FileSystemState.PathRedux;
 using YellowCounter.FileSystemState.HashCodes;
+using YellowCounter.FileSystemState.Options;
+using YellowCounter.FileSystemState.Filter;
 
 namespace YellowCounter.FileSystemState
 {
     public class FileSystemState : IAcceptFileSystemEntry 
     {
         private PathToFileStateHashtable _state;
+        private readonly PathStorage pathStorage;
 
-        public FileSystemState(string rootDir, string filter = "*", EnumerationOptions options = null)
+        public FileSystemState(string rootDir, string filter = "*")
+            : this(rootDir, new FileSystemStateOptions()
+                  .WithFilter(filter))
+        {
+        }
+        public FileSystemState(string rootDir, string filter, FileSystemStateOptions options)
+            : this(rootDir, options.WithFilter(filter))
+        {
+
+        }
+
+        public FileSystemState(string rootDir, FileSystemStateOptions options)
         {
             this.RootDir = rootDir ?? throw new ArgumentNullException(nameof(rootDir));
-            this.Filter = filter ?? throw new ArgumentNullException(nameof(filter));
+
+            this.Options = (options ?? new FileSystemStateOptions()).ApplyDefaults();
 
             if(!Directory.Exists(rootDir))
                 throw new DirectoryNotFoundException();
 
-            EnumerationOptions = options ?? new EnumerationOptions()
-            {
-            };
-
-            this.pathStorage = new PathStorage(new PathStorageOptions()
-            {
-                HashedCharBufferOptions = new HashedCharBufferOptions()
-                {
-                    InitialCharCapacity = 1024,
-                    HashBucketOptions = new HashedStorage.HashBucketOptions()
-                    {
-                        Capacity = 256,
-                        ChunkSize = 32,
-                    },
-                    NewHashCode = () => new StandardHashCode(),
-                },
-                HashBucketOptions = new HashedStorage.HashBucketOptions()
-                {
-                    Capacity = 64,
-                    ChunkSize = 32,
-                }
-            });
+            this.pathStorage = new PathStorage(options.PathStorageOptions);
 
             _state = new PathToFileStateHashtable(this.pathStorage);
         }
 
-        public string RootDir { get; set; }
-        public string Filter { get; set; }
-        public EnumerationOptions EnumerationOptions { get; set; }
+        public string RootDir { get; private set; }
+        public FileSystemStateOptions Options { get; private set; }
 
-        private readonly PathStorage pathStorage;
 
         public void LoadState()
         {
@@ -82,9 +74,8 @@ namespace YellowCounter.FileSystemState
         private void gatherChanges()
         {
             var enumerator = new FileSystemChangeEnumerator(
-                this.Filter,
-                this.RootDir, 
-                this.EnumerationOptions,
+                this.RootDir,
+                this.Options,
                 this);
 
             enumerator.Scan();

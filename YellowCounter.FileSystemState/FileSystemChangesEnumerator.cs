@@ -6,30 +6,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Enumeration;
 using System.Runtime.InteropServices;
+using YellowCounter.FileSystemState.Filter;
+using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState
 {
     internal class FileSystemChangeEnumerator : FileSystemEnumerator<object>
     {
-        private readonly string filter;
+        private readonly IFilenameFilter filter;
         private IAcceptFileSystemEntry acceptFileSystemEntry;
 
-        private static bool ignoreCase;
-
-        static FileSystemChangeEnumerator()
-        {
-            ignoreCase = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
-                || RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
-        }
-
         public FileSystemChangeEnumerator(
-            string filter,
             string path,
-            EnumerationOptions enumerationOptions,
+            FileSystemStateOptions options,
             IAcceptFileSystemEntry acceptFileSystemEntry)
-            : base(path, enumerationOptions)
+            : base(path, options)
         {
-            this.filter = filter;
+            this.filter = options.Filter;
             this.acceptFileSystemEntry = acceptFileSystemEntry;
         }
 
@@ -51,10 +44,7 @@ namespace YellowCounter.FileSystemState
             if(entry.IsDirectory)
                 return false;
 
-            if(FileSystemName.MatchesSimpleExpression(filter, entry.FileName, ignoreCase: ignoreCase))
-                return true;
-
-            return false;
+            return filter.ShouldInclude(entry.FileName);
         }
 
         protected override bool ShouldRecurseIntoEntry(ref FileSystemEntry entry) => true;
