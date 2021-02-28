@@ -76,40 +76,5 @@ namespace YellowCounter.FileSystemState.Options
 
             return options;
         }
-
-        internal static HashBucketOptions ApplyDefaults(this HashBucketOptions options)
-        {
-            if(options.Capacity <= 0)
-                options.Capacity = 256;
-
-            if(options.ChunkSize < 0)
-                options.ChunkSize = 32;
-
-            return options;
-        }
-
-        internal static PathStorageOptions ApplyDefaults(this PathStorageOptions options)
-        {
-            options.HashBucketOptions ??= new HashBucketOptions();
-            options.HashBucketOptions.ApplyDefaults();
-
-            options.HashedCharBufferOptions ??= new HashedCharBufferOptions();
-            options.HashedCharBufferOptions.ApplyDefaults();
-
-            return options;
-        }
-
-        internal static HashedCharBufferOptions ApplyDefaults(this HashedCharBufferOptions options)
-        {
-            if(options.InitialCharCapacity <= 0)
-                options.InitialCharCapacity = 1024;
-
-            options.NewHashCode ??= () => new StandardHashCode();
-
-            options.HashBucketOptions ??= new HashBucketOptions();
-            options.HashBucketOptions.ApplyDefaults();
-
-            return options;
-        }
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using YellowCounter.FileSystemState.HashCodes;
 using YellowCounter.FileSystemState.HashedStorage;
+using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState.PathRedux
 {

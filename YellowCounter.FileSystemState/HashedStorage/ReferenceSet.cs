@@ -1,5 +1,6 @@
 ﻿using System;
 using YellowCounter.FileSystemState.HashedStorage;
+using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState.HashedStorage
 {

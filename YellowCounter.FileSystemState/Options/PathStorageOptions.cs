@@ -4,7 +4,7 @@ using System.Text;
 using YellowCounter.FileSystemState.HashCodes;
 using YellowCounter.FileSystemState.HashedStorage;
 
-namespace YellowCounter.FileSystemState.PathRedux
+namespace YellowCounter.FileSystemState.Options
 {
     public class PathStorageOptions
     {

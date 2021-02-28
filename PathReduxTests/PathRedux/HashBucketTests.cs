@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using UnitTestCoder.Shouldly.Gen;
 using YellowCounter.FileSystemState.HashedStorage;
+using YellowCounter.FileSystemState.Options;
 
 namespace PathReduxTests.PathRedux
 {

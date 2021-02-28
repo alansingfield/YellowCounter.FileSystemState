@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace YellowCounter.FileSystemState.HashedStorage
+namespace YellowCounter.FileSystemState.Options
 {
     public class HashBucketOptions
     {

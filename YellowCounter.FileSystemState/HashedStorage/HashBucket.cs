@@ -10,6 +10,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using YellowCounter.FileSystemState.Bits;
 using YellowCounter.FileSystemState.HashedStorage;
+using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState.HashedStorage
 {
