@@ -6,6 +6,7 @@ using YellowCounter.FileSystemState.PathRedux;
 using Shouldly;
 using PathReduxTests.HashCodes;
 using YellowCounter.FileSystemState.HashedStorage;
+using YellowCounter.FileSystemState.Options;
 
 namespace PathReduxTests.PathRedux
 {

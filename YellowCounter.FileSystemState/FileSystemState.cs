@@ -39,7 +39,7 @@ namespace YellowCounter.FileSystemState
 
             this.pathStorage = new PathStorage(options.PathStorageOptions);
 
-            _state = new PathToFileStateHashtable(this.pathStorage);
+            _state = new PathToFileStateHashtable(this.pathStorage, options.FileStateReferenceSetOptions);
         }
 
         public string RootDir { get; private set; }

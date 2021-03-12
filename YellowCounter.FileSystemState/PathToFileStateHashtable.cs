@@ -7,6 +7,7 @@ using YellowCounter.FileSystemState.PathRedux;
 using System.Diagnostics;
 using System.IO;
 using YellowCounter.FileSystemState.HashedStorage;
+using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState
 {
@@ -16,14 +17,9 @@ namespace YellowCounter.FileSystemState
         private bool disposedValue;
         private readonly IPathStorage pathStorage;
 
-        public PathToFileStateHashtable(IPathStorage pathStorage) 
+        public PathToFileStateHashtable(IPathStorage pathStorage, FileStateReferenceSetOptions options) 
         {
-            dict = new FileStateReferenceSet(new FileStateReferenceSetOptions()
-            {
-                Capacity = 100,
-                ChunkSize = 32,
-                FillFactor = 70,
-            });
+            dict = new FileStateReferenceSet(options);
 
             this.pathStorage = pathStorage;
         }

@@ -71,8 +71,10 @@ namespace YellowCounter.FileSystemState.Options
             options.DirectoryFilter ??= new DirectoryFilter();
 
             options.PathStorageOptions ??= new PathStorageOptions();
-
             options.PathStorageOptions.ApplyDefaults();
+
+            options.FileStateReferenceSetOptions ??= new FileStateReferenceSetOptions();
+            options.FileStateReferenceSetOptions.ApplyDefaults();
 
             return options;
         }

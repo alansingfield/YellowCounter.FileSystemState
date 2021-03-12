@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using YellowCounter.FileSystemState.HashedStorage;
+using YellowCounter.FileSystemState.Options;
 using YellowCounter.FileSystemState.PathRedux;
 
 namespace PathReduxTests.PathRedux

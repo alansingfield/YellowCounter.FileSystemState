@@ -4,10 +4,7 @@ using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState.HashedStorage
 {
-    public class ReferenceSetOptions : HashBucketOptions
-    {
-        public int? FillFactor { get; set; }
-    }
+
 
     public abstract class ReferenceSet<TKey, TValue> : IDisposable
         where TValue: struct 
