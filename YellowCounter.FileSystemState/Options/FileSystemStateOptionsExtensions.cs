@@ -11,6 +11,21 @@ namespace YellowCounter.FileSystemState.Options
 {
     public static class FileSystemStateOptionsExtensions
     {
+        internal static FileSystemStateOptions ApplyDefaults(this FileSystemStateOptions options)
+        {
+            options.Filter ??= new FilenameFilter();
+            options.DirectoryFilter ??= new DirectoryFilter();
+
+            options.PathStorageOptions ??= new PathStorageOptions();
+            options.PathStorageOptions.ApplyDefaults();
+
+            options.FileStateReferenceSetOptions ??= new FileStateReferenceSetOptions();
+            options.FileStateReferenceSetOptions.ApplyDefaults();
+
+            return options;
+        }
+
+
         public static FileSystemStateOptions WithFilter(this FileSystemStateOptions options, string pattern)
         {
             if(pattern == null)
@@ -65,18 +80,6 @@ namespace YellowCounter.FileSystemState.Options
             return options;
         }
 
-        internal static FileSystemStateOptions ApplyDefaults(this FileSystemStateOptions options)
-        {
-            options.Filter ??= new FilenameFilter();
-            options.DirectoryFilter ??= new DirectoryFilter();
 
-            options.PathStorageOptions ??= new PathStorageOptions();
-            options.PathStorageOptions.ApplyDefaults();
-
-            options.FileStateReferenceSetOptions ??= new FileStateReferenceSetOptions();
-            options.FileStateReferenceSetOptions.ApplyDefaults();
-
-            return options;
-        }
     }
 }

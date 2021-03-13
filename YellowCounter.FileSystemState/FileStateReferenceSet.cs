@@ -8,8 +8,9 @@ namespace YellowCounter.FileSystemState
 {
     internal class FileStateReferenceSet : ReferenceSet<(int, int), FileState>
     {
-        public FileStateReferenceSet(FileStateReferenceSetOptions options) : base(options)
+        public FileStateReferenceSet(FileStateReferenceSetOptions options) : base(options.ReferenceSetOptions)
         {
+
         }
 
         protected override int GetHashOfKey((int, int) key)

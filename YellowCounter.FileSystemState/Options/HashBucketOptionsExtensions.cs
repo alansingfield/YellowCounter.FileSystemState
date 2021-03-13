@@ -18,5 +18,17 @@ namespace YellowCounter.FileSystemState.Options
             return options;
         }
 
+
+        public static HashBucketOptions WithCapacity(this HashBucketOptions options, int capacity)
+        {
+            options.Capacity = capacity;
+            return options;
+        }
+
+        public static HashBucketOptions WithChunkSize(this HashBucketOptions options, int chunkSize)
+        {
+            options.ChunkSize = chunkSize;
+            return options;
+        }
     }
 }

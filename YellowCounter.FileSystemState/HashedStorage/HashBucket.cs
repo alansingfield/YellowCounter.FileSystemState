@@ -40,6 +40,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <param name="options">Sizing options</param>
         public HashBucket(HashBucketOptions options)
         {
+            options ??= new HashBucketOptions().ApplyDefaults();
+
             this.mem = new T[options.Capacity];
 
             this.capacity = options.Capacity;
@@ -80,7 +82,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// hash clustering. This function converts a hash code (which gives the first
         /// position) to another hash code (for the second position). By default this
         /// uses a non-repeating pseudo-random sequence from PseudoRandomSequence
-        /// but it can be overridden using the HashBucketOptions.Permute function.
+        /// but it can be overridden if required.
         /// Must be deterministic.
         /// </summary>
         /// <param name="hash">Input hash</param>
@@ -358,6 +360,12 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 capacity);          // Enumerate to the end.
         }
 
+        /// <summary>
+        /// Enumerate through all populated items in the bucket, but return the index
+        /// rather than a ref to the actual item. Can be used in conjunction with
+        /// hashBucket[idx] and hashBucket.DeleteAt(idx);
+        /// </summary>
+        /// <returns></returns>
         public IndexSegment AllIndices()
         {
             int scanLimit = this.occupancy == 0 ? 0 : this.capacity;
@@ -385,13 +393,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 disposedValue = true;
             }
         }
-
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~HashBucket()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
 
         public void Dispose()
         {

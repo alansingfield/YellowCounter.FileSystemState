@@ -4,7 +4,10 @@ using System.Text;
 
 namespace YellowCounter.FileSystemState.Options
 {
-    public class FileStateReferenceSetOptions : ReferenceSetOptions { }
+    public class FileStateReferenceSetOptions
+    {
+        public ReferenceSetOptions ReferenceSetOptions { get; set; }
+    }
 }
 
 

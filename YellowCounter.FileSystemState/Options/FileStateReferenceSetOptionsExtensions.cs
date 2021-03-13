@@ -8,7 +8,8 @@ namespace YellowCounter.FileSystemState.Options
     {
         public static FileStateReferenceSetOptions ApplyDefaults(this FileStateReferenceSetOptions options)
         {
-            ((ReferenceSetOptions)options).ApplyDefaults();
+            options.ReferenceSetOptions ??= new ReferenceSetOptions();
+            options.ReferenceSetOptions.ApplyDefaults();
 
             return options;
         }

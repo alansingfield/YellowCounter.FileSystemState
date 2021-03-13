@@ -4,8 +4,9 @@ using System.Text;
 
 namespace YellowCounter.FileSystemState.Options
 {
-    public class ReferenceSetOptions : HashBucketOptions
+    public class ReferenceSetOptions
     {
         public int? FillFactor { get; set; }
+        public HashBucketOptions HashBucketOptions { get; set; }
     }
 }

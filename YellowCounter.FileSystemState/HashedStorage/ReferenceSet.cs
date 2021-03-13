@@ -16,12 +16,9 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
         public ReferenceSet(ReferenceSetOptions options = null)
         {
-            options ??= new ReferenceSetOptions()
-            {
-                Capacity = 256,
-            };
+            options ??= new ReferenceSetOptions().ApplyDefaults();
 
-            hashBucket = new HashBucket<TValue>(options);
+            hashBucket = new HashBucket<TValue>(options.HashBucketOptions);
 
             this.fillFactor = (options.FillFactor ?? 80) / 100.0f;
 

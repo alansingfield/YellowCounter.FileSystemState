@@ -11,7 +11,8 @@ namespace YellowCounter.FileSystemState.Options
             if(options.FillFactor <= 0)
                 options.FillFactor = 70;
 
-            ((HashBucketOptions)options).ApplyDefaults();
+            options.HashBucketOptions ??= new HashBucketOptions();
+            options.HashBucketOptions.ApplyDefaults();
 
             return options;
         }
