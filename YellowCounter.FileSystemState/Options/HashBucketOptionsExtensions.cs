@@ -7,17 +7,6 @@ namespace YellowCounter.FileSystemState.Options
 {
     public static class HashBucketOptionsExtensions
     {
-        internal static HashBucketOptions ApplyDefaults(this HashBucketOptions options)
-        {
-            if(options.Capacity <= 0)
-                options.Capacity = 256;
-
-            if(options.ChunkSize < 0)
-                options.ChunkSize = 32;
-
-            return options;
-        }
-
 
         public static HashBucketOptions WithCapacity(this HashBucketOptions options, int capacity)
         {

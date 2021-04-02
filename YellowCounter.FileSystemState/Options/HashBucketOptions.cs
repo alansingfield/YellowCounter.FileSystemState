@@ -9,12 +9,12 @@ namespace YellowCounter.FileSystemState.Options
         /// <summary>
         /// Maximum number of elements which can be stored
         /// </summary>
-        public int Capacity { get; set; }
+        public int Capacity { get; set; } = 256;
         
         /// <summary>
         /// Number of elements to group together which will share a common
         /// maximum known probe depth.
         /// </summary>
-        public int ChunkSize { get; set; }
+        public int ChunkSize { get; set; } = 32;
     }
 }

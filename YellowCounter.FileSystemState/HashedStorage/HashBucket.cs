@@ -40,7 +40,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// <param name="options">Sizing options</param>
         public HashBucket(HashBucketOptions options)
         {
-            options ??= new HashBucketOptions().ApplyDefaults();
+            options ??= new HashBucketOptions();
 
             this.mem = new T[options.Capacity];
 

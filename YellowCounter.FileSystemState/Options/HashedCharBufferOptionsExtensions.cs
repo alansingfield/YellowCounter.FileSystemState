@@ -17,7 +17,6 @@ namespace YellowCounter.FileSystemState.Options
             options.NewHashCode ??= () => new StandardHashCode();
 
             options.HashBucketOptions ??= new HashBucketOptions();
-            options.HashBucketOptions.ApplyDefaults();
 
             return options;
         }

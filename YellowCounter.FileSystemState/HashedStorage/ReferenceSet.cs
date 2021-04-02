@@ -10,24 +10,18 @@ namespace YellowCounter.FileSystemState.HashedStorage
         where TValue: struct 
         where TKey: struct
     {
+        private ReferenceSetOptions options;
         private HashBucket<TValue> hashBucket;
-        private float fillFactor;
-        private int usageLimit;
 
         public ReferenceSet(ReferenceSetOptions options = null)
         {
-            options ??= new ReferenceSetOptions().ApplyDefaults();
+            this.options = options == null ? new ReferenceSetOptions()
+                : options.Clone();
 
-            hashBucket = new HashBucket<TValue>(options.HashBucketOptions);
+            // Tell the SizePolicy the initial size of the HashBucket.
+            this.options.SizePolicy.Capacity = this.options.HashBucketOptions.Capacity;
 
-            this.fillFactor = (options.FillFactor ?? 80) / 100.0f;
-
-            refreshUsageLimit();
-        }
-
-        private void refreshUsageLimit()
-        {
-            this.usageLimit = (int)(hashBucket.Capacity * this.fillFactor);
+            hashBucket = new HashBucket<TValue>(this.options.HashBucketOptions);
         }
 
         /// <summary>
@@ -87,52 +81,17 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
         private ref TValue tryStoreInternal(TValue value, int hash, out int index)
         {
-            // make sure we have not exceeded the fillfactor limit.
-            if(hashBucket.Usage < usageLimit)
+            if(options.SizePolicy.MustResize(hashBucket.Usage + 1))
             {
-                if(hashBucket.TryStore(hash, value, out int newIndex1))
-                {
-                    index = newIndex1;
-                    return ref hashBucket[newIndex1];
-                }
+                // The SizePolicy will set Capacity to the new size required. 
+                Resize(options.SizePolicy.Capacity);
             }
 
-            // Rebuild the HashBucket and store the new item in there. This will
-            // throw an exception if after resizing it still can't fit in - not
-            // sure how that could happen...
-            rebuildLookup(headroom: 1, value, out int newIndex2);
+            if(!hashBucket.TryStore(hash, value, out index))
+                throw new Exception("HashBucket was resized but there was still not enough room");
 
-            index = newIndex2;
-            return ref hashBucket[newIndex2];
+            return ref hashBucket[index];
         }
-
-
-        ///// <summary>
-        ///// Finds the item with the given key. If the item can't be found, calls
-        ///// valueFactory() to create a new item, and stores this under the key
-        ///// provided.
-        ///// </summary>
-        ///// <param name="key">Key to search for.</param>
-        ///// <param name="valueFactory">Creates the <typeparamref name="TValue"/>
-        ///// if not found in existing set</param>
-        ///// <returns>Reference to the found or newly created item.</returns>
-        //public ref TValue GetOrAdd<TContext>(TKey key, Func<TContext, TValue> valueFactory, TContext context)
-        //{
-        //    int hash = GetHashOfKey(key);
-
-        //    foreach(ref TValue item in hashBucket.Retrieve(hash))
-        //    {
-        //        if(hashAndMatch(key, hash, item))
-        //        {
-        //            return ref item;
-        //        }
-        //    }
-
-        //    // Not found, call the factory method to create the item.
-        //    TValue newItem = valueFactory(context);
-
-        //    return ref tryStoreInternal(newItem, hash);
-        //}
 
         private bool hashAndMatch(TKey key, int hash, TValue item)
         {
@@ -142,39 +101,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
             return GetHashOfValue(item) == hash && Match(item, key);
         }
-
-
-        ///// <summary>
-        ///// Calculates the Key of the argument, and then looks for an existing
-        ///// item which matches that key. If it finds one, the old item is
-        ///// overwritten in-place with the new one. If it does not find the
-        ///// item the supplied value is added to the Set.
-        ///// </summary>
-        ///// <param name="value"></param>
-        ///// <returns>Reference to the item within this ReferenceSet</returns>
-        //public ref TValue AddOrReplace(TValue value)
-        //{
-        //    TKey key = GetKey(value);
-        //    int hash = GetHashOfKey(key);
-
-        //    // If the key is already in our HashBucket, overwrite the slot
-        //    // with the supplied value.
-        //    foreach(ref TValue item in hashBucket.Retrieve(hash))
-        //    {
-        //        if(hashAndMatch(key, hash, item))
-        //        {
-        //            // Copy-write the supplied value into our array
-        //            item = value;
-
-        //            // Return reference to the item in the array
-        //            return ref item;
-        //        }
-        //    }
-
-        //    // Item not yet in the HashBucket, so add it in and return
-        //    // reference to item created.
-        //    return ref tryStoreInternal(value, hash);
-        //}
 
         public ref TValue this[TKey key]
         {
@@ -258,39 +184,38 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
             this.hashBucket.Dispose();
             this.hashBucket = replacement;
-            
-            refreshUsageLimit();
+
+            this.options.SizePolicy.Capacity = newCapacity;
         }
 
-        private void rebuildLookup(int headroom, TValue newItem, out int position)
-        {
-            // Given the headroom we need, get a list of possible sizes to try for the lookup.
-            foreach(var opts in hashBucket.SizeOptions(headroom))
-            {
-                // Create a replacement hash bucket of the new size
-                var replacement = new HashBucket<TValue>(opts);
+        //private void rebuildLookup(int headroom, TValue newItem, out int position)
+        //{
+        //    // Given the headroom we need, get a list of possible sizes to try for the lookup.
+        //    foreach(var opts in hashBucket.SizeOptions(headroom))
+        //    {
+        //        // Create a replacement hash bucket of the new size
+        //        var replacement = new HashBucket<TValue>(opts);
 
-                // Populate the replacement with our existing data
-                foreach(ref var itm in hashBucket)
-                {
-                    if(!replacement.TryStore(GetHashOfKey(GetKey(itm)), itm))
-                        continue;   // Can't store in the replacement, try a different size
-                }
+        //        // Populate the replacement with our existing data
+        //        foreach(ref var itm in hashBucket)
+        //        {
+        //            if(!replacement.TryStore(GetHashOfKey(GetKey(itm)), itm))
+        //                continue;   // Can't store in the replacement, try a different size
+        //        }
 
-                // Store the new value which made us exceed the size threshold.
-                if(!replacement.TryStore(GetHashOfKey(GetKey(newItem)), newItem, out position))
-                    continue;
+        //        // Store the new value which made us exceed the size threshold.
+        //        if(!replacement.TryStore(GetHashOfKey(GetKey(newItem)), newItem, out position))
+        //            continue;
 
-                // We've managed to store everything, REPLACE the old lookup with a new one.
-                this.hashBucket.Dispose();
-                this.hashBucket = replacement;
+        //        // We've managed to store everything, REPLACE the old lookup with a new one.
+        //        this.hashBucket.Dispose();
+        //        this.hashBucket = replacement;
 
-                refreshUsageLimit();
-                return;
-            }
+        //        return;
+        //    }
 
-            throw new Exception("Unable to rebuild HashBucket");
-        }
+        //    throw new Exception("Unable to rebuild HashBucket");
+        //}
 
         public void Dispose()
         {
