@@ -15,7 +15,7 @@ namespace YellowCounter.FileSystemState.Sizing
         /// </summary>
         public int MinCapacity { get; set; } = 1024;
         /// <summary>
-        /// If the fill factor is below this value, a resize will occur.
+        /// If the fill factor is below this value, a shrink will occur.
         /// </summary>
         public int MinFillFactor { get; set; } = 30;
         /// <summary>

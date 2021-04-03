@@ -28,39 +28,47 @@ namespace YellowCounter.FileSystemState.PathRedux
         public int HashCapacity => hashLookup.Capacity;
 
         /// <summary>
-        /// Returns index position
+        /// Store some text in the buffer, returning the index position
+        /// of where it was stored. If the text already exists in the
+        /// buffer, return the index position of where it was found.
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
         public int Store(ReadOnlySpan<char> text)
         {
+            // Compute a hash of the text we want to store.
             int hash = HashSequence(text);
+
+            // Does it already exist?
             int foundPos = findByHash(hash, text);
 
             if(foundPos != -1)
                 return foundPos;
 
+            int headroom = text.Length + 2;
+
+            resizeBufferIfNeeded(headroom);
+
             int pos = charBuffer.Store(text);
+
+            // this would be a maths error in not calculating the new length properly.
             if(pos == -1)
-            {
-                int newSize = charBuffer.Capacity * 2;
-                if(newSize < text.Length + charBuffer.Capacity + 2) // Allow 2 for null terminators
-                    newSize = charBuffer.Capacity + text.Length + 2;
-
-                charBuffer.Resize(newSize);
-
-                pos = charBuffer.Store(text);
-
-                // this would be a maths error in not calculating the new length properly.
-                if(pos == -1)
-                    throw new Exception("Resizing charBuffer didn't give us enough space");
-            }
+                throw new Exception("Resizing charBuffer didn't give us enough space");
 
             storeHashInLookup(hash, pos);
 
             return pos;
         }
 
+        private void resizeBufferIfNeeded(int headroom)
+        {
+            int? newCapacity = options.CharSizePolicy.MustResize(
+                charBuffer.Usage + headroom,
+                charBuffer.Capacity);
+
+            if(newCapacity != null)
+                charBuffer.Resize(newCapacity.Value);
+        }
 
 
         public ReadOnlySpan<char> Retrieve(int pos) => charBuffer.Retrieve(pos);
@@ -87,15 +95,15 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         private void storeHashInLookup(int hash, int pos)
         {
-            resizeIfNeeded(1);
+            resizeHashIfNeeded(1);
 
             if(!hashLookup.TryStore(hash, pos))
                 throw new Exception("Unable to store in lookup");
         }
 
-        private void resizeIfNeeded(int headroom)
+        private void resizeHashIfNeeded(int headroom)
         {
-            int? newCapacity = options.SizePolicy.MustResize(
+            int? newCapacity = options.HashSizePolicy.MustResize(
                 hashLookup.Usage + headroom,
                 hashLookup.Capacity);
 

@@ -18,6 +18,7 @@ namespace YellowCounter.FileSystemState.PathRedux
         }
 
         public int Capacity => buffer.Length;
+        public int Usage => pos;
 
         public void Resize(int capacity)
         {
