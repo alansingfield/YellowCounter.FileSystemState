@@ -16,34 +16,36 @@ namespace YellowCounter.FileSystemState
     {
         private PathToFileStateHashtable _state;
         private readonly PathStorage pathStorage;
+        private FileSystemStateOptions options;
 
         public FileSystemState(string rootDir, string filter = "*")
             : this(rootDir, new FileSystemStateOptions()
                   .WithFilter(filter))
         {
         }
+
         public FileSystemState(string rootDir, string filter, FileSystemStateOptions options)
             : this(rootDir, options.WithFilter(filter))
         {
-
         }
 
         public FileSystemState(string rootDir, FileSystemStateOptions options)
         {
-            this.RootDir = rootDir ?? throw new ArgumentNullException(nameof(rootDir));
+            this.options = (options == null)
+                ? new FileSystemStateOptions()
+                : options.Clone();
 
-            this.Options = (options ?? new FileSystemStateOptions()).ApplyDefaults();
+            this.RootDir = rootDir ?? throw new ArgumentNullException(nameof(rootDir));
 
             if(!Directory.Exists(rootDir))
                 throw new DirectoryNotFoundException();
 
-            this.pathStorage = new PathStorage(options.PathStorageOptions);
+            this.pathStorage = new PathStorage(this.options.PathStorageOptions);
 
-            _state = new PathToFileStateHashtable(this.pathStorage, options.FileStateReferenceSetOptions);
+            _state = new PathToFileStateHashtable(this.pathStorage, this.options.FileStateReferenceSetOptions);
         }
 
         public string RootDir { get; private set; }
-        public FileSystemStateOptions Options { get; private set; }
 
 
         public void LoadState()
@@ -75,7 +77,7 @@ namespace YellowCounter.FileSystemState
         {
             var enumerator = new FileSystemChangeEnumerator(
                 this.RootDir,
-                this.Options,
+                this.options,
                 this);
 
             enumerator.Scan();

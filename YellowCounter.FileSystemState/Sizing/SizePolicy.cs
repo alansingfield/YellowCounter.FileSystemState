@@ -8,11 +8,13 @@ namespace YellowCounter.FileSystemState.Sizing
     {
         private SizePolicyOptions options;
 
-        public SizePolicy(SizePolicyOptions options)
+        public SizePolicy(SizePolicyOptions options = null)
         {
-            verifyOptions(options);
+            this.options = (options == null)
+                ? new SizePolicyOptions()
+                : options.Clone();
 
-            this.options = options.Clone();
+            verifyOptions(this.options);
         }
 
         private void verifyOptions(SizePolicyOptions options)

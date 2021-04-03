@@ -37,48 +37,5 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
             return result;
         }
-
-        public static IEnumerable<HashBucketOptions> SizeOptions<T>(this HashBucket<T> source, int headroom = 0)
-        {
-            int requiredSize = source.Occupancy + headroom;
-
-            if(requiredSize < 0)
-                throw new ArgumentException($"Headroom change must not be less than current occupancy", nameof(headroom));
-
-            var factors = new List<double>();
-
-            if(requiredSize < source.Capacity * 0.3)
-            {
-                // Using less than 30% of capacity, reduce size.
-                factors.Add(0.5);
-            }
-            else if(requiredSize > source.Capacity * 0.7)
-            {
-                // Increase size by root2 once we are using more than 70%
-                // Capacity times root2
-                factors.Add(1.4);
-            }
-
-            foreach(var capacityFactor in factors)
-            {
-                // Adjust original size by the chosen factors
-                int newCapacity = (int)(Math.Ceiling(source.Capacity * capacityFactor));
-
-                // Sanity limits
-
-                // Must have at least enough space for the current usage count and extra
-                // headroom requested.
-                if(newCapacity < requiredSize)
-                    newCapacity = requiredSize;
-
-                yield return new HashBucketOptions()
-                {
-                    Capacity = newCapacity,
-                    ChunkSize = source.ChunkSize,
-                };
-            }
-
-        }
-
     }
 }

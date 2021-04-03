@@ -12,14 +12,16 @@ namespace YellowCounter.FileSystemState.PathRedux
     {
         private CharBuffer charBuffer;
         private HashBucket<int> hashLookup;
-        private readonly Func<IHashCode> newHashCode;
+        private HashedCharBufferOptions options;
 
-        public HashedCharBuffer(HashedCharBufferOptions options)
+        public HashedCharBuffer(HashedCharBufferOptions options = null)
         {
+            this.options = (options == null) ?
+                new HashedCharBufferOptions()
+                : options.Clone();
+
             charBuffer = new CharBuffer(options.InitialCharCapacity);
             hashLookup = new HashBucket<int>(options.HashBucketOptions);
-
-            this.newHashCode = options.NewHashCode;
         }
 
         public int CharCapacity => charBuffer.Capacity;
@@ -81,47 +83,43 @@ namespace YellowCounter.FileSystemState.PathRedux
             return -1;
         }
 
-        public int HashSequence(ReadOnlySpan<char> text) => newHashCode().HashSequence(text);
-
+        public int HashSequence(ReadOnlySpan<char> text) => options.NewHashCode().HashSequence(text);
 
         private void storeHashInLookup(int hash, int pos)
         {
-            if(((float)hashLookup.Usage / hashLookup.Capacity) < 0.8f)
-            {
-                if(hashLookup.TryStore(hash, pos))
-                    return;
-            }
-         
-            rebuildLookup();
+            resizeIfNeeded(1);
 
             if(!hashLookup.TryStore(hash, pos))
                 throw new Exception("Unable to store in lookup");
         }
 
-        private void rebuildLookup()
+        private void resizeIfNeeded(int headroom)
         {
-            // Given the headroom we need, get a list of possible sizes to try for the lookup.
-            foreach(var opts in hashLookup.SizeOptions(headroom: 1))
+            int? newCapacity = options.SizePolicy.MustResize(
+                hashLookup.Usage + headroom,
+                hashLookup.Capacity);
+
+            if(newCapacity != null)
+                rebuildLookup(newCapacity.Value);
+        }
+
+        private void rebuildLookup(int newCapacity)
+        {
+            var opts = this.options.HashBucketOptions.Clone();
+            opts.Capacity = newCapacity;
+
+            // Create a replacement hash bucket of the new size
+            var replacement = new HashBucket<int>(opts);
+
+            // Populate the replacement with our existing data
+            foreach(var itm in charBuffer)
             {
-                // Create a replacement hash bucket of the new size
-                var replacement = new HashBucket<int>(opts);
-
-                // Populate the replacement with our existing data
-                foreach(var itm in charBuffer)
-                {
-                    if(!replacement.TryStore(HashSequence(itm.Span), itm.Pos))
-                        continue;   // Can't store in the replacement, try a different size
-                }
-
-                // We've managed to store everything, REPLACE the old lookup with a new one.
-                this.hashLookup = replacement;
-                return;
+                if(!replacement.TryStore(HashSequence(itm.Span), itm.Pos))
+                    throw new Exception("Unable to store data after resizing to fit");
             }
 
-            // Theoretically this shouldn't happen, but...
-            // We've got a backstop which increases both the capacity and the linear search
-            // limit - what more could we do? Let's find out...
-            throw new Exception("Too many hash collisions.");
+            // We've managed to store everything, REPLACE the old lookup with a new one.
+            this.hashLookup = replacement;
         }
     }
 }

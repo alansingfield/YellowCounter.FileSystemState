@@ -30,10 +30,17 @@ namespace YellowCounter.FileSystemState.PathRedux
         private List<Entry> entries;
         private const int Root = -1;    // The root entry's ParentIdx is set to this.
 
+        private PathStorageOptions options;
+
         private Func<IHashCode> newHashCode;
 
-        public PathStorage(PathStorageOptions options)
+        public PathStorage(PathStorageOptions options = null)
         {
+            this.options = (options == null)
+                ? new PathStorageOptions()
+                : options.Clone();
+            
+            // Need to use the same HashCode function as the HashedCharBuffer.
             this.newHashCode = options.HashedCharBufferOptions.NewHashCode;
 
             buf = new HashedCharBuffer(options.HashedCharBufferOptions);
@@ -94,43 +101,42 @@ namespace YellowCounter.FileSystemState.PathRedux
 
         private void storeHashInLookup(int hash, int entryIdx)
         {
-            if(((float)buckets.Usage / buckets.Capacity) < 0.8f)
-            {
-                if(buckets.TryStore(hash, entryIdx))
-                    return;
-            }
-
-            rebuildBuckets();
+            resizeIfNeeded(1);
 
             if(!buckets.TryStore(hash, entryIdx))
                 throw new Exception("Unable to store in lookup");
         }
 
-        private void rebuildBuckets()
+        private void resizeIfNeeded(int headroom)
         {
-            // SizeOptions will give us choices of possible sizes for the replacement HashBucket
-            // We need to loop through each until we find one which fits.
-            foreach(var opts in buckets.SizeOptions(headroom: 1))
+            int? newCapacity = options.SizePolicy.MustResize(
+                buckets.Usage + headroom,
+                buckets.Capacity);
+
+            if(newCapacity != null)
+                rebuildBuckets(newCapacity.Value);
+        }
+
+        private void rebuildBuckets(int newCapacity)
+        {
+            var hbOptions = this.options.HashBucketOptions.Clone();
+            hbOptions.Capacity = newCapacity;
+
+            var replacement = new HashBucket<int>(hbOptions);
+
+            // Re-hash all our existing entries and try storing into the replacement 
+            // hashbucket.
+            for(int idx = 0; idx < entries.Count; idx++)
             {
-                var replacement = new HashBucket<int>(opts);
+                int hash = rehashEntry(idx);
 
-                // Re-hash all our existing entries and try storing into the replacement 
-                // hashbucket.
-                for(int idx = 0; idx < entries.Count; idx++)
-                {
-                    int hash = rehashEntry(idx);
-
-                    if(!replacement.TryStore(hash, idx))
-                        continue;   // Can't store in the replacement, try a different size
-                }
-
-                // If we get to here, we've successfully rebuilt the buckets.
-                this.buckets.Dispose();
-                this.buckets = replacement;
-                return;
+                if(!replacement.TryStore(hash, idx))
+                    throw new Exception("Error in rebuilding HashBucket, capacity exceeded");
             }
 
-            throw new Exception("Too many hash collisions.");
+            // If we get to here, we've successfully rebuilt the buckets.
+            this.buckets.Dispose();
+            this.buckets = replacement;
         }
 
         private int rehashEntry(int idx)

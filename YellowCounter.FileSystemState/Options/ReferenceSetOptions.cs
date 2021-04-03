@@ -8,7 +8,7 @@ namespace YellowCounter.FileSystemState.Options
     public class ReferenceSetOptions
     {
         public HashBucketOptions HashBucketOptions { get; set; } = new HashBucketOptions();
-        public ISizePolicy SizePolicy { get; set; } = new SizePolicy(new SizePolicyOptions());
+        public ISizePolicy SizePolicy { get; set; } = new SizePolicy();
 
         public ReferenceSetOptions Clone() => (ReferenceSetOptions)this.MemberwiseClone();
     }

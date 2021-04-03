@@ -16,5 +16,7 @@ namespace YellowCounter.FileSystemState.Options
         /// maximum known probe depth.
         /// </summary>
         public int ChunkSize { get; set; } = 32;
+
+        public HashBucketOptions Clone() => (HashBucketOptions)this.MemberwiseClone();
     }
 }
