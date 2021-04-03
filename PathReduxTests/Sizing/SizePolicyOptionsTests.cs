@@ -21,7 +21,7 @@ namespace PathReduxTests.Sizing
                 options.ShouldNotBeNull();
                 options.FillFactor.ShouldBe(70);
                 options.MinCapacity.ShouldBe(1024);
-                options.MinFillFactor.ShouldBe(30);
+                options.MinFillFactor.ShouldBe(0);
                 options.GrowthFactor.ShouldBe(50);
                 options.ShrinkToFillFactor.ShouldBe(60);
             }
