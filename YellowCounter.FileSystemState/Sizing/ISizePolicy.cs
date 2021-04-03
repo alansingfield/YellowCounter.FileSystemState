@@ -7,18 +7,12 @@ namespace YellowCounter.FileSystemState.Sizing
     public interface ISizePolicy
     {
         /// <summary>
-        /// Upon creation, set this to the current size of the buffer.
-        /// When MustResize() returns TRUE, read this to find what the new
-        /// size should be.
-        /// </summary>
-        int Capacity { get; set; }
-        /// <summary>
-        /// Before adding items to the buffer, calculate what the new number
-        /// of items will be. This will return TRUE if you
-        /// must resize the buffer before adding the items in.
+        /// Calculate whether the fill factor is too high or too low
+        /// and compute a new recommended size if required.
         /// </summary>
         /// <param name="usage">Intended usage count</param>
-        /// <returns>Whether to resize or not</returns>
-        bool MustResize(int usage);
+        /// <param name="capacity">Current capacity of buffer</param>
+        /// <returns>Null for no change or the new size</returns>
+        int? MustResize(int usage, int capacity);
     }
 }

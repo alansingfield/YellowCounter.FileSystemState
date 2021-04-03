@@ -22,16 +22,12 @@ namespace PathReduxTests.Sizing
                 ShrinkToFillFactor= 60
             });
 
-            sizePolicy.Capacity = 1000;
-
             // 700 items should fit
-            sizePolicy.MustResize(700).ShouldBe(false);
-            sizePolicy.Capacity.ShouldBe(1000);
+            sizePolicy.MustResize(700, 1000).ShouldBe(null);
 
             // 701 items will not, it will double the capacity since growth
             // factor is 100%
-            sizePolicy.MustResize(701).ShouldBe(true);
-            sizePolicy.Capacity.ShouldBe(2000);
+            sizePolicy.MustResize(701, 1000).ShouldBe(2000);
         }
 
         [TestMethod]
@@ -46,16 +42,12 @@ namespace PathReduxTests.Sizing
                 ShrinkToFillFactor = 60
             });
 
-            sizePolicy.Capacity = 1000;
-
             // 300 items should fit
-            sizePolicy.MustResize(300).ShouldBe(false);
-            sizePolicy.Capacity.ShouldBe(1000);
+            sizePolicy.MustResize(300, 1000).ShouldBe(null);
 
             // 299 items is too small, it will resize so fill factor
             // is around 60%
-            sizePolicy.MustResize(299).ShouldBe(true);
-            sizePolicy.Capacity.ShouldBe(498);
+            sizePolicy.MustResize(299, 1000).ShouldBe(498);
         }
 
     }
