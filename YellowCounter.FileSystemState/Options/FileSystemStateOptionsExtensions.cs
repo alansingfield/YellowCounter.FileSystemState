@@ -66,5 +66,20 @@ namespace YellowCounter.FileSystemState.Options
         }
 
 
+        public static FileSystemStateOptions WithPathStorageOptions(this FileSystemStateOptions options, PathStorageOptions pathStorageOptions)
+        {
+            options.PathStorageOptions = pathStorageOptions;
+
+            return options;
+        }
+
+        public static FileSystemStateOptions WithFileStateReferenceSetOptions(this FileSystemStateOptions options, FileStateReferenceSetOptions fileStateReferenceSetOptions)
+        {
+            options.FileStateReferenceSetOptions = fileStateReferenceSetOptions;
+
+            return options;
+        }
+
+
     }
 }

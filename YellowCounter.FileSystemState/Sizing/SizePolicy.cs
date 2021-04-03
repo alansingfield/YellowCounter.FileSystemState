@@ -14,10 +14,10 @@ namespace YellowCounter.FileSystemState.Sizing
                 ? new SizePolicyOptions()
                 : options.Clone();
 
-            verifyOptions(this.options);
+            VerifyOptions(this.options);
         }
 
-        private void verifyOptions(SizePolicyOptions options)
+        protected virtual void VerifyOptions(SizePolicyOptions options)
         {
             if(options.FillFactor < 1 || options.FillFactor > 100)
                 throw new ArgumentOutOfRangeException(nameof(options.FillFactor),
@@ -48,7 +48,7 @@ namespace YellowCounter.FileSystemState.Sizing
                     $"Argument must not be greater than {nameof(options.FillFactor)}");
         }
 
-        public int? MustResize(int usage, int capacity)
+        public virtual int? MustResize(int usage, int capacity)
         {
             var maxUsage = (int)(capacity * options.FillFactor / 100.0d);
             var minUsage = (int)(capacity * options.MinFillFactor / 100.0d);

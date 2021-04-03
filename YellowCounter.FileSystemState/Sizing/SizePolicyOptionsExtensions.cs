@@ -1,29 +1,44 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
-//namespace YellowCounter.FileSystemState.Sizing
-//{
-//    public static class SizePolicyOptionsExtensions
-//    {
-//        public static SizePolicyOptions ApplyDefaults(SizePolicyOptions options)
-//        {
-//            if(options.FillFactor <= 0)
-//                options.FillFactor = 1;
+namespace YellowCounter.FileSystemState.Sizing
+{
+    public static class SizePolicyOptionsExtensions
+    {
+        public static SizePolicyOptions WithFillFactor(this SizePolicyOptions sizePolicyOptions,
+            int fillFactor)
+        {
+            sizePolicyOptions.FillFactor = fillFactor;
+            return sizePolicyOptions;
+        }
 
-//            if(options.FillFactor > 100)
-//                options.FillFactor = 100;
+        public static SizePolicyOptions WithMinCapacity(this SizePolicyOptions sizePolicyOptions,
+            int minCapacity)
+        {
+            sizePolicyOptions.MinCapacity = minCapacity;
+            return sizePolicyOptions;
+        }
 
-//            if(options.MinCapacity <= 0)
-//                options.MinCapacity = 1;
+        public static SizePolicyOptions WithMinFillFactor(this SizePolicyOptions sizePolicyOptions,
+            int minFillFactor)
+        {
+            sizePolicyOptions.MinFillFactor = minFillFactor;
+            return sizePolicyOptions;
+        }
 
-//            if(options.MinFillFactor > options.FillFactor)
-//                options.MinFillFactor = options.FillFactor;
+        public static SizePolicyOptions WithGrowthFactor(this SizePolicyOptions sizePolicyOptions,
+            int growthFactor)
+        {
+            sizePolicyOptions.GrowthFactor = growthFactor;
+            return sizePolicyOptions;
+        }
 
-//            if(options.MinFillFactor < 0)
-//                options.MinFillFactor = 0;
-
-//            return options;
-//        }
-//    }
-//}
+        public static SizePolicyOptions WithShrinkToFillFactor(this SizePolicyOptions sizePolicyOptions,
+            int shrinkTofillFactor)
+        {
+            sizePolicyOptions.ShrinkToFillFactor = shrinkTofillFactor;
+            return sizePolicyOptions;
+        }
+    }
+}

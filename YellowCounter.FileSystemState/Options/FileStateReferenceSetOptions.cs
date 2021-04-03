@@ -6,7 +6,7 @@ namespace YellowCounter.FileSystemState.Options
 {
     public class FileStateReferenceSetOptions
     {
-        public ReferenceSetOptions ReferenceSetOptions { get; set; }
+        public virtual ReferenceSetOptions ReferenceSetOptions { get; set; }
     }
 }
 

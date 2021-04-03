@@ -9,11 +9,11 @@ namespace YellowCounter.FileSystemState.Options
 {
     public class HashedCharBufferOptions
     {
-        public Func<IHashCode> NewHashCode { get; set; } = () => new StandardHashCode();
-        public int InitialCharCapacity { get; set; } = 1024;
-        public HashBucketOptions HashBucketOptions { get; set; } = new HashBucketOptions();
-        public ISizePolicy HashSizePolicy { get; set; } = new SizePolicy();
-        public ISizePolicy CharSizePolicy { get; set; } = new SizePolicy(new SizePolicyOptions()
+        public virtual Func<IHashCode> NewHashCode { get; set; } = () => new StandardHashCode();
+        public virtual int InitialCharCapacity { get; set; } = 1024;
+        public virtual HashBucketOptions HashBucketOptions { get; set; } = new HashBucketOptions();
+        public virtual ISizePolicy HashSizePolicy { get; set; } = new SizePolicy();
+        public virtual ISizePolicy CharSizePolicy { get; set; } = new SizePolicy(new SizePolicyOptions()
         {
             FillFactor = 100,       // Allow dense packing
             GrowthFactor = 100,     // Double in size each time
@@ -21,6 +21,6 @@ namespace YellowCounter.FileSystemState.Options
             MinFillFactor = 0,      // Never shrink
         });
 
-        public HashedCharBufferOptions Clone() => (HashedCharBufferOptions)this.MemberwiseClone();
+        public virtual HashedCharBufferOptions Clone() => (HashedCharBufferOptions)this.MemberwiseClone();
     }
 }

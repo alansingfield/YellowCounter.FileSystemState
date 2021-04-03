@@ -7,13 +7,20 @@ namespace YellowCounter.FileSystemState.Options
 {
     public static class ReferenceSetOptionsExtensions
     {
-        public static ReferenceSetOptions ApplyDefaults(this ReferenceSetOptions options)
+        public static ReferenceSetOptions WithHashBucketOptions(this ReferenceSetOptions referenceSetOptions,
+            HashBucketOptions hashBucketOptions)
         {
-            options.HashBucketOptions ??= new HashBucketOptions();
+            referenceSetOptions.HashBucketOptions = hashBucketOptions;
 
-            options.SizePolicy ??= new SizePolicy(new SizePolicyOptions());
+            return referenceSetOptions;
+        }
 
-            return options;
+        public static ReferenceSetOptions WithSizePolicy(this ReferenceSetOptions referenceSetOptions,
+            ISizePolicy sizePolicy)
+        {
+            referenceSetOptions.SizePolicy = sizePolicy;
+
+            return referenceSetOptions;
         }
     }
 }

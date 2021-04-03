@@ -9,14 +9,14 @@ namespace YellowCounter.FileSystemState.Options
         /// <summary>
         /// Maximum number of elements which can be stored
         /// </summary>
-        public int Capacity { get; set; } = 256;
+        public virtual int Capacity { get; set; } = 256;
         
         /// <summary>
         /// Number of elements to group together which will share a common
         /// maximum known probe depth.
         /// </summary>
-        public int ChunkSize { get; set; } = 32;
+        public virtual int ChunkSize { get; set; } = 32;
 
-        public HashBucketOptions Clone() => (HashBucketOptions)this.MemberwiseClone();
+        public virtual HashBucketOptions Clone() => (HashBucketOptions)this.MemberwiseClone();
     }
 }

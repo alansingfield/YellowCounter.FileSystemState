@@ -49,6 +49,5 @@ namespace PathReduxTests.Sizing
             // is around 60%
             sizePolicy.MustResize(299, 1000).ShouldBe(498);
         }
-
     }
 }

@@ -9,10 +9,9 @@ namespace YellowCounter.FileSystemState.Options
 {
     public class PathStorageOptions
     {
-        public HashedCharBufferOptions HashedCharBufferOptions { get; set; } = new HashedCharBufferOptions();
-        public HashBucketOptions HashBucketOptions { get; set; } = new HashBucketOptions();
-        public ISizePolicy SizePolicy { get; set; } = new SizePolicy();
-
-        public PathStorageOptions Clone() => (PathStorageOptions)this.MemberwiseClone();
+        public virtual HashedCharBufferOptions HashedCharBufferOptions { get; set; } = new HashedCharBufferOptions();
+        public virtual HashBucketOptions HashBucketOptions { get; set; } = new HashBucketOptions();
+        public virtual ISizePolicy SizePolicy { get; set; } = new SizePolicy();
+        public virtual PathStorageOptions Clone() => (PathStorageOptions)this.MemberwiseClone();
     }
 }

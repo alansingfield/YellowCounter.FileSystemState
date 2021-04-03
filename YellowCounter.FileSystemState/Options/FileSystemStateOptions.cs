@@ -11,25 +11,25 @@ namespace YellowCounter.FileSystemState.Options
 {
     public class FileSystemStateOptions
     {
-        public bool RecurseSubdirectories { get; set; } = false;
-        public bool IgnoreInaccessible { get; set; } = true;
-        public FileAttributes AttributesToSkip { get; set; } = FileAttributes.Hidden | FileAttributes.System;
+        public virtual bool RecurseSubdirectories { get; set; } = false;
+        public virtual bool IgnoreInaccessible { get; set; } = true;
+        public virtual FileAttributes AttributesToSkip { get; set; } = FileAttributes.Hidden | FileAttributes.System;
 
         /// <summary>
         /// Filter for filenames
         /// </summary>
-        public IFilenameFilter Filter { get; set; } = new FilenameFilter();
+        public virtual IFilenameFilter Filter { get; set; } = new FilenameFilter();
         /// <summary>
         /// Filter for directory names. Filter is not tested on the root folder.
         /// </summary>
-        public IDirectoryFilter DirectoryFilter { get; set; } = new DirectoryFilter();
+        public virtual IDirectoryFilter DirectoryFilter { get; set; } = new DirectoryFilter();
         /// <summary>
         /// Options for the storage of path strings.
         /// </summary>
-        public PathStorageOptions PathStorageOptions { get; set; } = new PathStorageOptions();
+        public virtual PathStorageOptions PathStorageOptions { get; set; } = new PathStorageOptions();
 
-        public FileStateReferenceSetOptions FileStateReferenceSetOptions { get; set; } = new FileStateReferenceSetOptions();
+        public virtual FileStateReferenceSetOptions FileStateReferenceSetOptions { get; set; } = new FileStateReferenceSetOptions();
 
-        public FileSystemStateOptions Clone() => (FileSystemStateOptions)this.MemberwiseClone();
+        public virtual FileSystemStateOptions Clone() => (FileSystemStateOptions)this.MemberwiseClone();
     }
 }
