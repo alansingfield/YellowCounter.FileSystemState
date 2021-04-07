@@ -20,6 +20,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
     /// </summary>
     public partial class HashBucket<T> : IDisposable
     {
+        private HashBucketOptions options;
         private T[] mem;
         private readonly int capacity;
         private readonly BitArray64 elementsInUse;
@@ -38,20 +39,22 @@ namespace YellowCounter.FileSystemState.HashedStorage
         /// implementation. 
         /// </summary>
         /// <param name="options">Sizing options</param>
-        public HashBucket(HashBucketOptions options)
+        public HashBucket(HashBucketOptions options = null)
         {
-            options ??= new HashBucketOptions();
+            this.options = (options == null)
+                            ? new HashBucketOptions()
+                            : options.Clone();
 
-            this.mem = new T[options.Capacity];
+            this.mem = new T[this.options.Capacity];
 
-            this.capacity = options.Capacity;
+            this.capacity = this.options.Capacity;
             this.elementsInUse = new BitArray64(this.Capacity);
             this.softDeleted = new BitArray64(this.Capacity);
 
             this.occupancy = 0;
             this.usage = 0;
 
-            this.chunkSize = options.ChunkSize;
+            this.chunkSize = this.options.ChunkSize;
 
             // If you specify 0 for the ChunkSize then put everything in one chunk.
             if(this.chunkSize < 1)

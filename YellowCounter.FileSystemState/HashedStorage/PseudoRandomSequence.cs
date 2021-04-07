@@ -5,7 +5,12 @@ using System.Text;
 namespace YellowCounter.FileSystemState.HashedStorage
 {
     /// <summary>
-    /// Non-repeating pseudo-random sequence
+    /// Non-repeating pseudo-random sequence.
+    /// There is a 1:1 mapping between each possible 32-bit input value and each
+    /// output value. That is, there are no two integers that would map to the
+    /// same result.
+    /// from https://preshing.com/20121224/how-to-generate-a-sequence-of-unique-random-integers/
+    /// https://github.com/preshing/RandomSequence/blob/master/randomsequence.h
     /// </summary>
     public static class PseudoRandomSequence
     {
@@ -21,9 +26,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
         private static uint permuteQPR(uint x)
         {
-            // from https://preshing.com/20121224/how-to-generate-a-sequence-of-unique-random-integers/
-            // https://github.com/preshing/RandomSequence/blob/master/randomsequence.h
-
             const uint prime = 4294967291;
             const uint primeDiv2 = 2147483645;
 
