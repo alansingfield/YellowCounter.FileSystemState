@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using YellowCounter.FileSystemState.Bits;
 
 namespace YellowCounter.FileSystemState.HashedStorage
 {
@@ -15,8 +14,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
             public Enumerator(
                 T[] mem,
-                BitArray64 elementsInUse,
-                BitArray64 softDeleted,
+                BitArray elementsInUse,
+                BitArray softDeleted,
                 int start,
                 int scanLimit,
                 int capacity)

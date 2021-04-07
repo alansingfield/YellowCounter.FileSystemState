@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
-using YellowCounter.FileSystemState.Bits;
 using YellowCounter.FileSystemState.HashedStorage;
 using YellowCounter.FileSystemState.Options;
 
@@ -23,8 +22,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
         private HashBucketOptions options;
         private T[] mem;
         private readonly int capacity;
-        private readonly BitArray64 elementsInUse;
-        private readonly BitArray64 softDeleted;
+        private readonly BitArray elementsInUse;
+        private readonly BitArray softDeleted;
         private int occupancy;
         private int usage;
         private readonly int chunkSize;
@@ -48,8 +47,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
             this.mem = new T[this.options.Capacity];
 
             this.capacity = this.options.Capacity;
-            this.elementsInUse = new BitArray64(this.Capacity);
-            this.softDeleted = new BitArray64(this.Capacity);
+            this.elementsInUse = new BitArray(this.Capacity);
+            this.softDeleted = new BitArray(this.Capacity);
 
             this.occupancy = 0;
             this.usage = 0;
@@ -387,8 +386,8 @@ namespace YellowCounter.FileSystemState.HashedStorage
             {
                 if(disposing)
                 {
-                    elementsInUse?.Dispose();
-                    softDeleted?.Dispose();
+                    //elementsInUse?.Dispose();
+                    //softDeleted?.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer

@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using YellowCounter.FileSystemState.Bits;
 
 namespace YellowCounter.FileSystemState.HashedStorage
 {
@@ -11,12 +11,12 @@ namespace YellowCounter.FileSystemState.HashedStorage
         {
             private Cursor cursor;
 
-            private readonly BitArray64 elementsInUse;
-            private readonly BitArray64 softDeleted;
+            private readonly BitArray elementsInUse;
+            private readonly BitArray softDeleted;
 
             public IndexEnumerator(
-                BitArray64 elementsInUse,
-                BitArray64 softDeleted,
+                BitArray elementsInUse,
+                BitArray softDeleted,
                 int start,
                 int scanLimit,
                 int capacity)
