@@ -6,7 +6,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
 {
 
 
-    public abstract class ReferenceSet<TKey, TValue> : IDisposable
+    public abstract class ReferenceSet<TKey, TValue>
         where TValue: struct 
         where TKey: struct
     {
@@ -187,13 +187,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
                     throw new Exception("Unable to resize");
             }
 
-            this.hashBucket.Dispose();
             this.hashBucket = replacement;
-        }
-
-        public void Dispose()
-        {
-            ((IDisposable)hashBucket)?.Dispose();
         }
 
         public HashBucket<TValue>.IndexSegment AllIndices()

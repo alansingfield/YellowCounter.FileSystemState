@@ -17,7 +17,7 @@ namespace YellowCounter.FileSystemState.HashedStorage
     /// A hash bucket using the Open Addressing scheme. This is a fixed capacity
     /// implementation.
     /// </summary>
-    public partial class HashBucket<T> : IDisposable
+    public partial class HashBucket<T>
     {
         private HashBucketOptions options;
         private T[] mem;
@@ -31,7 +31,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
 
         private int numChunks;
         private int[] chunkProbeDepth;
-        private bool disposedValue;
 
         /// <summary>
         /// Creates a hash bucket using Open Addresssing. This is a fixed size
@@ -378,29 +377,6 @@ namespace YellowCounter.FileSystemState.HashedStorage
                 0,                  // Start at the beginning
                 scanLimit,          // All the elements
                 capacity));         // Enumerate to the end.
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if(!disposedValue)
-            {
-                if(disposing)
-                {
-                    //elementsInUse?.Dispose();
-                    //softDeleted?.Dispose();
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }
