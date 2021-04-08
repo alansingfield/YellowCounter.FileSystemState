@@ -12,11 +12,13 @@ using YellowCounter.FileSystemState.Filter;
 
 namespace YellowCounter.FileSystemState
 {
-    public class FileSystemState : IAcceptFileSystemEntry 
+    public class FileSystemState
     {
         private PathToFileStateHashtable _state;
+        private AcceptFileSystemEntry acceptFileSystemEntry;
         private readonly PathStorage pathStorage;
         private FileSystemStateOptions options;
+        private Func<IFileSystemEnumerator> newFileSystemEnumerator;
 
         public FileSystemState(string rootDir, string filter = "*")
             : this(rootDir, new FileSystemStateOptions()
@@ -43,6 +45,19 @@ namespace YellowCounter.FileSystemState
             this.pathStorage = new PathStorage(this.options.PathStorageOptions);
 
             _state = new PathToFileStateHashtable(this.pathStorage, this.options.FileStateReferenceSetOptions);
+
+            this.acceptFileSystemEntry = new AcceptFileSystemEntry(
+                _state,
+                this.options.Filter,
+                this.options.DirectoryFilter);
+
+            this.newFileSystemEnumerator = () =>
+            {
+                return new FileSystemChangeEnumerator(
+                    this.RootDir,
+                    toEnumerationOptions(this.options),
+                    this.acceptFileSystemEntry);
+            };
         }
 
         public string RootDir { get; private set; }
@@ -75,18 +90,36 @@ namespace YellowCounter.FileSystemState
 
         private void gatherChanges()
         {
-            var enumerator = new FileSystemChangeEnumerator(
-                this.RootDir,
-                this.options,
-                this);
-
-            enumerator.Scan();
+            using(var enumerator = newFileSystemEnumerator())
+            {
+                // The FileSystemEnumerator doesn't act like a normal enumerator. The
+                // Reset() method is not supported. Each item is presented as a ref
+                // FileSystemEntry to the TransformEntry method. The result of that is
+                // then available on Current. We can simply look at the FileSystemEntry
+                // at TransformEntry time and ignore Current completely.
+                //
+                // Enumerating causes TransformEntry() to be called repeatedly
+                while(enumerator.MoveNext()) { };
+            }
         }
 
-        public void Accept(in FileSystemEntry fileSystemEntry)
-        {
-            _state.Mark(in fileSystemEntry);
-        }
+        //public void TransformEntry(in FileSystemEntry fileSystemEntry)
+        //{
+        //    _state.TransformEntry(in fileSystemEntry);
+        //}
+
+        //public bool ShouldIncludeEntry(ref FileSystemEntry entry)
+        //{
+        //    if(entry.IsDirectory)
+        //        return false;
+
+        //    return options.Filter.ShouldInclude(entry.FileName);
+        //}
+
+        //public bool ShouldRecurseIntoEntry(ref FileSystemEntry entry)
+        //{
+        //    return options.DirectoryFilter.ShouldInclude(entry.FileName);
+        //}
 
         private void acceptChanges()
         {
@@ -225,6 +258,17 @@ namespace YellowCounter.FileSystemState
                     OldFile: x.Removes[0]
                 ))
                 .ToList();
+        }
+
+
+        private static EnumerationOptions toEnumerationOptions(FileSystemStateOptions options)
+        {
+            return new EnumerationOptions()
+            {
+                RecurseSubdirectories = options.RecurseSubdirectories,
+                IgnoreInaccessible = options.IgnoreInaccessible,
+                AttributesToSkip = options.AttributesToSkip,
+            };
         }
 
     }

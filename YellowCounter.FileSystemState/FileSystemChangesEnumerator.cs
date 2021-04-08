@@ -11,58 +11,40 @@ using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState
 {
-    internal class FileSystemChangeEnumerator : FileSystemEnumerator<object>
+    internal class FileSystemChangeEnumerator : FileSystemEnumerator<object>, IFileSystemEnumerator
     {
-        private readonly IFilenameFilter filter;
-        private readonly IDirectoryFilter directoryFilter;
         private IAcceptFileSystemEntry acceptFileSystemEntry;
 
         public FileSystemChangeEnumerator(
             string path,
-            FileSystemStateOptions options,
+            EnumerationOptions options,
             IAcceptFileSystemEntry acceptFileSystemEntry)
-            : base(path, toEnumerationOptions(options))
+            : base(path, options)
         {
-            this.filter = options.Filter;
-            this.directoryFilter = options.DirectoryFilter;
-
             this.acceptFileSystemEntry = acceptFileSystemEntry;
-        }
-
-        public void Scan()
-        {
-            // Enumerating causes TransformEntry() to be called repeatedly
-            while(MoveNext()) { }
         }
 
         protected override object TransformEntry(ref FileSystemEntry entry)
         {
-            acceptFileSystemEntry.Accept(in entry);
+            acceptFileSystemEntry.TransformEntry(in entry);
 
             return null;
         }
 
         protected override bool ShouldIncludeEntry(ref FileSystemEntry entry)
         {
-            if(entry.IsDirectory)
-                return false;
-
-            return filter.ShouldInclude(entry.FileName);
+            return acceptFileSystemEntry.ShouldIncludeEntry(ref entry);
         }
 
         protected override bool ShouldRecurseIntoEntry(ref FileSystemEntry entry)
         {
-            return directoryFilter.ShouldInclude(entry.FileName);
+            return acceptFileSystemEntry.ShouldRecurseIntoEntry(ref entry);
         }
 
-        private static EnumerationOptions toEnumerationOptions(FileSystemStateOptions options)
-        {
-            return new EnumerationOptions() 
-            {
-                RecurseSubdirectories = options.RecurseSubdirectories,
-                IgnoreInaccessible = options.IgnoreInaccessible,
-                AttributesToSkip = options.AttributesToSkip,
-            };
-        }
+        object IFileSystemEnumerator.TransformEntry(ref FileSystemEntry entry) => this.TransformEntry(ref entry);
+
+        bool IFileSystemEnumerator.ShouldIncludeEntry(ref FileSystemEntry entry) => this.ShouldIncludeEntry(ref entry);
+
+        bool IFileSystemEnumerator.ShouldRecurseIntoEntry(ref FileSystemEntry entry) => this.ShouldRecurseIntoEntry(ref entry);
     }
 }

@@ -11,7 +11,7 @@ using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState
 {
-    internal class PathToFileStateHashtable
+    internal class PathToFileStateHashtable : IMark
     {
         FileStateReferenceSet dict;
         private readonly IPathStorage pathStorage;
@@ -23,7 +23,7 @@ namespace YellowCounter.FileSystemState
             this.pathStorage = pathStorage;
         }
 
-        internal void Mark(in FileSystemEntry input)
+        public void TransformEntry(in FileSystemEntry input)
         {
             // Look up the directory string and filename string, convert to a reference
             // number in pathStorage.

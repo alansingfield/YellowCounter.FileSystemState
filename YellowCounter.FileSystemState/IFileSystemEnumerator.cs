@@ -5,10 +5,11 @@ using System.Text;
 
 namespace YellowCounter.FileSystemState
 {
-    public interface IAcceptFileSystemEntry
+    public interface IFileSystemEnumerator : IDisposable
     {
-        void TransformEntry(in FileSystemEntry fileSystemEntry);
+        object TransformEntry(ref FileSystemEntry entry);
         bool ShouldIncludeEntry(ref FileSystemEntry entry);
         bool ShouldRecurseIntoEntry(ref FileSystemEntry entry);
+        bool MoveNext();
     }
 }

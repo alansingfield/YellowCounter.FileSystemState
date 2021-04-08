@@ -51,7 +51,7 @@ namespace PathReduxTests.Watcher
         [TestMethod]
         public void FileSystemWatcherBigDir()
         {
-            false.ShouldBeTrue();
+            //false.ShouldBeTrue();
 
             string currentDir = @"C:\";
 
