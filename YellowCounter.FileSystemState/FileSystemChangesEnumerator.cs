@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Enumeration;
@@ -16,10 +13,9 @@ namespace YellowCounter.FileSystemState
         private IAcceptFileSystemEntry acceptFileSystemEntry;
 
         public FileSystemChangeEnumerator(
-            string path,
-            EnumerationOptions options,
+            FileSystemEnumeratorOptions fso,
             IAcceptFileSystemEntry acceptFileSystemEntry)
-            : base(path, options)
+            : base(fso.RootDir, fso.EnumerationOptions)
         {
             this.acceptFileSystemEntry = acceptFileSystemEntry;
         }

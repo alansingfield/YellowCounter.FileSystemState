@@ -54,8 +54,11 @@ namespace YellowCounter.FileSystemState
             this.newFileSystemEnumerator = () =>
             {
                 return new FileSystemChangeEnumerator(
-                    this.RootDir,
-                    toEnumerationOptions(this.options),
+                    new FileSystemEnumeratorOptions()
+                    {
+                        RootDir = this.RootDir,
+                        EnumerationOptions = toEnumerationOptions(this.options),
+                    },
                     this.acceptFileSystemEntry);
             };
         }
