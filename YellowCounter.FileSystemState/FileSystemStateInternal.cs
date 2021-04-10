@@ -17,13 +17,13 @@ namespace YellowCounter.FileSystemState
         private readonly IRootDir rootDir;
         private readonly Func<IFileSystemEnumerator> newFileSystemEnumerator;
         private readonly IPathStorage pathStorage;
-        private readonly IPathToFileStateHashtable pathToFileStateHashtable;
+        private readonly IFileStateStorage pathToFileStateHashtable;
 
         public FileSystemStateInternal(
             IRootDir rootDir,
             Func<IFileSystemEnumerator> newFileSystemEnumerator,
             IPathStorage pathStorage,
-            IPathToFileStateHashtable pathToFileStateHashtable,
+            IFileStateStorage pathToFileStateHashtable,
             IAcceptFileSystemEntry acceptFileSystemEntry)
         {
             this.rootDir = rootDir;

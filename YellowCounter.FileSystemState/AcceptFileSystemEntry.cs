@@ -8,23 +8,23 @@ namespace YellowCounter.FileSystemState
 {
     internal class AcceptFileSystemEntry : IAcceptFileSystemEntry
     {
-        private readonly IPathToFileStateHashtable pathToFileStateHashtable;
+        private readonly IFileStateStorage fileStateHashTable;
         private readonly IFilenameFilter filenameFilter;
         private readonly IDirectoryFilter directoryFilter;
 
         public AcceptFileSystemEntry(
-            IPathToFileStateHashtable pathToFileStateHashtable, 
+            IFileStateStorage pathToFileStateHashtable, 
             IFilenameFilter filenameFilter,
             IDirectoryFilter directoryFilter)
         {
-            this.pathToFileStateHashtable = pathToFileStateHashtable;
+            this.fileStateHashTable = pathToFileStateHashtable;
             this.filenameFilter = filenameFilter;
             this.directoryFilter = directoryFilter;
         }
 
         public void TransformEntry(in FileSystemEntry fileSystemEntry)
         {
-            pathToFileStateHashtable.TransformEntry(in fileSystemEntry);
+            fileStateHashTable.Mark(in fileSystemEntry);
         }
 
         public bool ShouldIncludeEntry(ref FileSystemEntry entry)

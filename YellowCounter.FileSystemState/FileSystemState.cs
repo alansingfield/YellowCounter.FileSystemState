@@ -8,6 +8,9 @@ using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState
 {
+    /// <summary>
+    /// This is the public entry point for the library.
+    /// </summary>
     public class FileSystemState
     {
         // Static section, set up the container in the default configuration.
@@ -22,7 +25,7 @@ namespace YellowCounter.FileSystemState
 
         internal IResolverContext Context { get; private set; }
 
-        private FileSystemStateInternal fileSystemState;
+        private FileSystemStateInternal fssInternal;
         private IRootDir root;
 
         public FileSystemState(string rootDir, string filter = "*")
@@ -52,14 +55,14 @@ namespace YellowCounter.FileSystemState
 
             // Override the Filter implementations if passed in.
             if(options.Filter != null)
-                Context.Use(options.Filter);
+                this.Context.Use(options.Filter);
 
             if(options.DirectoryFilter != null)
-                Context.Use(options.DirectoryFilter);
+                this.Context.Use(options.DirectoryFilter);
 
             // Write to the EnumerationOptions; this will have been constructed for the scope but
             // the options won't have been passed in.
-            var enumerationOptions = Context.Resolve<EnumerationOptions>();
+            var enumerationOptions = this.Context.Resolve<EnumerationOptions>();
 
             enumerationOptions.RecurseSubdirectories = options.RecurseSubdirectories;
             enumerationOptions.IgnoreInaccessible = options.IgnoreInaccessible;
@@ -67,17 +70,17 @@ namespace YellowCounter.FileSystemState
 
             // The IRootDir object will already exist but not be initialised.
             // Write our chosen Root folder to it.
-            this.root = Context.Resolve<IRootDir>();
+            this.root = this.Context.Resolve<IRootDir>();
             this.root.Folder = rootDir;
 
             // Now when we resolve we will get a scoped instance with these settings.
-            this.fileSystemState = Context.Resolve<FileSystemStateInternal>();
+            this.fssInternal = this.Context.Resolve<FileSystemStateInternal>();
         }
 
         public string RootDir => this.root.Folder;
 
-        public void LoadState() => this.fileSystemState.LoadState();
+        public void LoadState() => this.fssInternal.LoadState();
 
-        public IList<FileChange> GetChanges() => this.fileSystemState.GetChanges();
+        public IList<FileChange> GetChanges() => this.fssInternal.GetChanges();
     }
 }

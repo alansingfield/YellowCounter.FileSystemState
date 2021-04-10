@@ -11,26 +11,26 @@ using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState
 {
-    internal interface IPathToFileStateHashtable
+    internal interface IFileStateStorage
     {
-        HashBucket<FileState>.Enumerator GetEnumerator();
+        void Mark(in FileSystemEntry input);
         void Sweep();
-        void TransformEntry(in FileSystemEntry input);
+        HashBucket<FileState>.Enumerator GetEnumerator();
     }
 
-    internal class PathToFileStateHashtable : IPathToFileStateHashtable
+    internal class FileStateStorage : IFileStateStorage
     {
         FileStateReferenceSet dict;
         private readonly IPathStorage pathStorage;
 
-        public PathToFileStateHashtable(IPathStorage pathStorage, FileStateReferenceSetOptions options)
+        public FileStateStorage(IPathStorage pathStorage, FileStateReferenceSetOptions options)
         {
             dict = new FileStateReferenceSet(options);
 
             this.pathStorage = pathStorage;
         }
 
-        public void TransformEntry(in FileSystemEntry input)
+        public void Mark(in FileSystemEntry input)
         {
             // Look up the directory string and filename string, convert to a reference
             // number in pathStorage.

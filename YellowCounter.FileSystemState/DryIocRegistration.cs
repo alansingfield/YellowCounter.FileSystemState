@@ -29,7 +29,7 @@ namespace YellowCounter.FileSystemState
                 Reuse.Transient,
                 setup: Setup.With(allowDisposableTransient: true));
 
-            container.Register<IPathToFileStateHashtable, PathToFileStateHashtable>(Reuse.Scoped);
+            container.Register<IFileStateStorage, FileStateStorage>(Reuse.Scoped);
 
             container.Register<IPathStorage, PathStorage>(Reuse.Scoped);
             container.Register<FileSystemStateInternal>(Reuse.Scoped);
