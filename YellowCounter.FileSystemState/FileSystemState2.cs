@@ -12,63 +12,31 @@ using YellowCounter.FileSystemState.Filter;
 
 namespace YellowCounter.FileSystemState
 {
-    public class FileSystemState
+    internal class FileSystemState2
     {
-        private PathToFileStateHashtable _state;
-        private IAcceptFileSystemEntry acceptFileSystemEntry;
-        private readonly PathStorage pathStorage;
-        private FileSystemStateOptions options;
-        private Func<IFileSystemEnumerator> newFileSystemEnumerator;
+        private readonly IRootDir rootDir;
+        private readonly Func<IFileSystemEnumerator> newFileSystemEnumerator;
+        private readonly IPathStorage pathStorage;
+        private readonly IPathToFileStateHashtable pathToFileStateHashtable;
 
-
-
-        public FileSystemState(string rootDir, string filter = "*")
-            : this(rootDir, new FileSystemStateOptions()
-                  .WithFilter(filter))
+        internal FileSystemState2(
+            IRootDir rootDir,
+            Func<IFileSystemEnumerator> newFileSystemEnumerator,
+            IPathStorage pathStorage,
+            IPathToFileStateHashtable pathToFileStateHashtable,
+            IAcceptFileSystemEntry acceptFileSystemEntry)
         {
+            this.rootDir = rootDir;
+            this.newFileSystemEnumerator = newFileSystemEnumerator;
+            this.pathStorage = pathStorage;
+            this.pathToFileStateHashtable = pathToFileStateHashtable;
         }
-
-        public FileSystemState(string rootDir, string filter, FileSystemStateOptions options)
-            : this(rootDir, options.WithFilter(filter))
-        {
-        }
-
-        public FileSystemState(string rootDir, FileSystemStateOptions options)
-        {
-            this.options = (options == null)
-                ? new FileSystemStateOptions()
-                : options.Clone();
-
-            this.RootDir = rootDir ?? throw new ArgumentNullException(nameof(rootDir));
-
-            if(!Directory.Exists(rootDir))
-                throw new DirectoryNotFoundException();
-
-            this.pathStorage = new PathStorage(this.options.PathStorageOptions);
-
-            _state = new PathToFileStateHashtable(this.pathStorage, this.options.FileStateReferenceSetOptions);
-
-            this.acceptFileSystemEntry = new AcceptFileSystemEntry(
-                _state,
-                this.options.Filter,
-                this.options.DirectoryFilter);
-
-            IRootDir rd = new RootDir() { Folder = rootDir };
-
-            this.newFileSystemEnumerator = () =>
-            {
-                return new FileSystemChangeEnumerator(
-                    rd,
-                    toEnumerationOptions(this.options),
-                                        this.acceptFileSystemEntry);
-            };
-        }
-
-        public string RootDir { get; private set; }
-
 
         public void LoadState()
         {
+            if(!Directory.Exists(rootDir.Folder))
+                throw new DirectoryNotFoundException();
+
             // Set initial baseline by reading current directory state without returning
             // every file as a change.
             gatherChanges();
@@ -107,34 +75,16 @@ namespace YellowCounter.FileSystemState
             }
         }
 
-        //public void TransformEntry(in FileSystemEntry fileSystemEntry)
-        //{
-        //    _state.TransformEntry(in fileSystemEntry);
-        //}
-
-        //public bool ShouldIncludeEntry(ref FileSystemEntry entry)
-        //{
-        //    if(entry.IsDirectory)
-        //        return false;
-
-        //    return options.Filter.ShouldInclude(entry.FileName);
-        //}
-
-        //public bool ShouldRecurseIntoEntry(ref FileSystemEntry entry)
-        //{
-        //    return options.DirectoryFilter.ShouldInclude(entry.FileName);
-        //}
-
         private void acceptChanges()
         {
             // Clear out the files that have been removed or renamed from our state.
-            _state.Sweep();
+            pathToFileStateHashtable.Sweep();
         }
 
         private List<FileChange> convertToFileChanges(
-            IEnumerable<FileState> creates, 
-            IEnumerable<FileState> changes, 
-            IEnumerable<FileState> removals, 
+            IEnumerable<FileState> creates,
+            IEnumerable<FileState> changes,
+            IEnumerable<FileState> removals,
             IEnumerable<(FileState NewFile, FileState OldFile)> renames)
         {
             var createResults = creates
@@ -158,7 +108,7 @@ namespace YellowCounter.FileSystemState
                     pathStorage.CreateString(x.OldFile.DirectoryRef),
                     pathStorage.CreateString(x.OldFile.FilenameRef)
                     ));
-            
+
             var result = new List<FileChange>();
 
             result.AddRange(createResults);
@@ -169,7 +119,7 @@ namespace YellowCounter.FileSystemState
             return result;
 
             FileChange newFileChange(
-                int directoryRef, 
+                int directoryRef,
                 int filenameRef,
                 WatcherChangeTypes changeType)
             {
@@ -191,7 +141,7 @@ namespace YellowCounter.FileSystemState
 
             gatherChanges();
 
-            foreach(ref readonly var x in _state)
+            foreach(ref readonly var x in pathToFileStateHashtable)
             {
                 if(x.Flags.HasFlag(FileStateFlags.Seen))
                 {
@@ -263,17 +213,5 @@ namespace YellowCounter.FileSystemState
                 ))
                 .ToList();
         }
-
-
-        private static EnumerationOptions toEnumerationOptions(FileSystemStateOptions options)
-        {
-            return new EnumerationOptions()
-            {
-                RecurseSubdirectories = options.RecurseSubdirectories,
-                IgnoreInaccessible = options.IgnoreInaccessible,
-                AttributesToSkip = options.AttributesToSkip,
-            };
-        }
-
     }
 }

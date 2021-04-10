@@ -11,12 +11,19 @@ using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState
 {
-    internal class PathToFileStateHashtable : IMark
+    internal interface IPathToFileStateHashtable
+    {
+        HashBucket<FileState>.Enumerator GetEnumerator();
+        void Sweep();
+        void TransformEntry(in FileSystemEntry input);
+    }
+
+    internal class PathToFileStateHashtable : IMark, IPathToFileStateHashtable
     {
         FileStateReferenceSet dict;
         private readonly IPathStorage pathStorage;
 
-        public PathToFileStateHashtable(IPathStorage pathStorage, FileStateReferenceSetOptions options) 
+        public PathToFileStateHashtable(IPathStorage pathStorage, FileStateReferenceSetOptions options)
         {
             dict = new FileStateReferenceSet(options);
 
@@ -55,8 +62,8 @@ namespace YellowCounter.FileSystemState
             // It's a new one so mark as "Created". Also set the Seen flag.
             fileState.Flags = FileStateFlags.Created | FileStateFlags.Seen;
 
-            fileState.DirectoryRef =        dirRef;
-            fileState.FilenameRef =         filenameRef;
+            fileState.DirectoryRef = dirRef;
+            fileState.FilenameRef = filenameRef;
 
             fileState.Signature = makeSignature(input.LastWriteTimeUtc, input.Length);
 
@@ -70,9 +77,9 @@ namespace YellowCounter.FileSystemState
                 // Combine datetime and length into 32 bit hash.
                 ulong uticks = (ulong)lastWriteTimeUtc.UtcTicks;
                 ulong ulength = (ulong)length;
-            
+
                 return
-                      (int)(uticks & 0xFFFFFFFF) 
+                      (int)(uticks & 0xFFFFFFFF)
                     ^ (int)(uticks >> 32)
                     ^ (int)(ulength & 0xFFFFFFFF)
                     ^ (int)(ulength >> 32)

@@ -8,12 +8,12 @@ namespace YellowCounter.FileSystemState
 {
     internal class AcceptFileSystemEntry : IAcceptFileSystemEntry
     {
-        private readonly IMark mark;
+        private readonly IPathToFileStateHashtable mark;
         private readonly IFilenameFilter filenameFilter;
         private readonly IDirectoryFilter directoryFilter;
 
         public AcceptFileSystemEntry(
-            IMark mark, 
+            IPathToFileStateHashtable mark, 
             IFilenameFilter filenameFilter,
             IDirectoryFilter directoryFilter)
         {
