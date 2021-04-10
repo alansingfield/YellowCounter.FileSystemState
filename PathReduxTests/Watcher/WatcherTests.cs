@@ -51,7 +51,7 @@ namespace PathReduxTests.Watcher
         [TestMethod]
         public void FileSystemWatcherBigDir()
         {
-            //false.ShouldBeTrue();
+            false.ShouldBeTrue();
 
             string currentDir = @"C:\";
 
@@ -100,48 +100,48 @@ namespace PathReduxTests.Watcher
         {
             false.ShouldBeTrue();
 
-            string currentDir = @"C:\";
+            //string currentDir = @"C:\";
 
-            var sizePolicy1 = new SizePolicyM();
-            var sizePolicy2 = new SizePolicyM();
+            //var sizePolicy1 = new SizePolicyM();
+            //var sizePolicy2 = new SizePolicyM();
 
-            // Character buffer should fill without leaving gaps.
-            var sizePolicy3 = new SizePolicyM(
-                new SizePolicyOptions().WithFillFactor(100).WithGrowthFactor(100));
+            //// Character buffer should fill without leaving gaps.
+            //var sizePolicy3 = new SizePolicyM(
+            //    new SizePolicyOptions().WithFillFactor(100).WithGrowthFactor(100));
 
-            var sizePolicy4 = new SizePolicyM();
+            //var sizePolicy4 = new SizePolicyM();
 
-            FileSystemState watcher = new FileSystemState(
-                currentDir, 
-                new FileSystemStateOptions()
-                    .WithRecurseSubdirectories(true)
-                    .WithFileStateReferenceSetOptions(new FileStateReferenceSetOptions()
-                        .WithReferenceSetOptions(new ReferenceSetOptions()
-                            .WithSizePolicy(sizePolicy1)
-                        )
-                    )
-                    .WithPathStorageOptions(new PathStorageOptions()
-                        .WithSizePolicy(sizePolicy2)
-                        .WithHashedCharBufferOptions(new HashedCharBufferOptions()
-                            .WithCharSizePolicy(sizePolicy3)
-                            .WithHashSizePolicy(sizePolicy4)
-                        )
-                    )
-                )
-                ;
+            //FileSystemStateInternal watcher = new FileSystemState(
+            //    currentDir, 
+            //    new FileSystemStateOptions()
+            //        .WithRecurseSubdirectories(true)
+            //        .WithFileStateReferenceSetOptions(new FileStateReferenceSetOptions()
+            //            .WithReferenceSetOptions(new ReferenceSetOptions()
+            //                .WithSizePolicy(sizePolicy1)
+            //            )
+            //        )
+            //        .WithPathStorageOptions(new PathStorageOptions()
+            //            .WithSizePolicy(sizePolicy2)
+            //            .WithHashedCharBufferOptions(new HashedCharBufferOptions()
+            //                .WithCharSizePolicy(sizePolicy3)
+            //                .WithHashSizePolicy(sizePolicy4)
+            //            )
+            //        )
+            //    )
+            //    ;
 
-            watcher.LoadState();
+            //watcher.LoadState();
 
-            var q = watcher.GetChanges();
-            q.Count.ShouldBe(0);
+            //var q = watcher.GetChanges();
+            //q.Count.ShouldBe(0);
 
-            foreach(var z in new [] { sizePolicy1, sizePolicy2, sizePolicy3, sizePolicy4 })
-            {
-                foreach(var h in z.UsageCapacityHistories)
-                {
-                    Debug.WriteLine($"{h.Usage, 12}|{h.Capacity, 12}|{h.Result, 12}");
-                }
-            }
+            //foreach(var z in new [] { sizePolicy1, sizePolicy2, sizePolicy3, sizePolicy4 })
+            //{
+            //    foreach(var h in z.UsageCapacityHistories)
+            //    {
+            //        Debug.WriteLine($"{h.Usage, 12}|{h.Capacity, 12}|{h.Result, 12}");
+            //    }
+            //}
 
         }
     }

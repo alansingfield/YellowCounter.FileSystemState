@@ -18,7 +18,7 @@ namespace YellowCounter.FileSystemState
         void TransformEntry(in FileSystemEntry input);
     }
 
-    internal class PathToFileStateHashtable : IMark, IPathToFileStateHashtable
+    internal class PathToFileStateHashtable : IPathToFileStateHashtable
     {
         FileStateReferenceSet dict;
         private readonly IPathStorage pathStorage;

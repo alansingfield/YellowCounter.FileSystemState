@@ -23,11 +23,16 @@ namespace YellowCounter.FileSystemState
             container.Register<IFilenameFilter, FilenameFilter>(Reuse.Scoped);
             container.Register<IDirectoryFilter, DirectoryFilter>(Reuse.Scoped);
             container.Register<IAcceptFileSystemEntry, AcceptFileSystemEntry>(Reuse.Scoped);
-            container.Register<IFileSystemEnumerator, FileSystemChangeEnumerator>(Reuse.Scoped);
+            
+            // We want a new instance of this one each time.
+            container.Register<IFileSystemEnumerator, FileSystemChangeEnumerator>(
+                Reuse.Transient,
+                setup: Setup.With(allowDisposableTransient: true));
+
             container.Register<IPathToFileStateHashtable, PathToFileStateHashtable>(Reuse.Scoped);
 
-            container.Register<PathStorage>(Reuse.Scoped);
-            container.Register<FileSystemState2>(Reuse.Scoped);
+            container.Register<IPathStorage, PathStorage>(Reuse.Scoped);
+            container.Register<FileSystemStateInternal>(Reuse.Scoped);
         }
 
     }

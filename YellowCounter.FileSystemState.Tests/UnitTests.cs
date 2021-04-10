@@ -40,11 +40,11 @@ public partial class FileSystemStateUnitTests
     //    var watcher = new FileSystemState(Environment.CurrentDirectory, options: null);
     //}
 
-    [Fact]
-    public static void FileSystemWatcher_ctor_PathDoesNotExist()
-    {
-        Assert.Throws<DirectoryNotFoundException>(() => new FileSystemState(@"Z:\RandomPath\sdsdljdkkjdfsdlcjfskdcvnj"));
-    }
+    //[Fact]
+    //public static void FileSystemWatcher_ctor_PathDoesNotExist()
+    //{
+    //    Assert.Throws<DirectoryNotFoundException>(() => new FileSystemState(@"Z:\RandomPath\sdsdljdkkjdfsdlcjfskdcvnj"));
+    //}
 
 
     [Fact]

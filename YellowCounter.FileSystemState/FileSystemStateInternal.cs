@@ -12,14 +12,14 @@ using YellowCounter.FileSystemState.Filter;
 
 namespace YellowCounter.FileSystemState
 {
-    internal class FileSystemState2
+    internal class FileSystemStateInternal
     {
         private readonly IRootDir rootDir;
         private readonly Func<IFileSystemEnumerator> newFileSystemEnumerator;
         private readonly IPathStorage pathStorage;
         private readonly IPathToFileStateHashtable pathToFileStateHashtable;
 
-        internal FileSystemState2(
+        public FileSystemStateInternal(
             IRootDir rootDir,
             Func<IFileSystemEnumerator> newFileSystemEnumerator,
             IPathStorage pathStorage,
