@@ -23,7 +23,6 @@ namespace YellowCounter.FileSystemState
             s_globalContainer.RegisterFileSystemState();
         }
 
-
         internal IResolverContext Context { get; private set; }
 
         private readonly IFileSystemStateInternal fileSystemStateInternal;
@@ -49,10 +48,10 @@ namespace YellowCounter.FileSystemState
         public FileSystemState(string rootDir, FileSystemStateOptions options)
         {
             if(rootDir == null)
-                throw new ArgumentException(nameof(rootDir));
+                throw new ArgumentNullException(nameof(rootDir));
 
             if(options == null)
-                throw new ArgumentException(nameof(options));
+                throw new ArgumentNullException(nameof(options));
 
             // This is where we hide the fact we're using DryIoc from the external caller.
             // We create a new container scope for each instance, and configure based on 

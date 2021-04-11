@@ -218,9 +218,9 @@ namespace PathReduxTests
         [TestMethod]
         public void FileSystemStateConstructorRootFilterRecursive()
         {
-            foreach(var val in new [] { false, true })
+            foreach(var val in new[] { false, true })
             {
-                var fss = new FileSystemState(@"FAKE:\", recursive:val);
+                var fss = new FileSystemState(@"FAKE:\", recursive: val);
 
                 var context = fss.Context;
 
@@ -229,6 +229,26 @@ namespace PathReduxTests
                 enumerationOptions.ShouldNotBeNull();
                 enumerationOptions.RecurseSubdirectories.ShouldBe(val);
             }
+        }
+
+        [TestMethod]
+        public void FileSystemStateConstructorNoRoot()
+        {
+            Should.Throw(() =>
+            {
+                new FileSystemState(null);
+            }, typeof(ArgumentNullException))
+                .Message.ShouldBe("Value cannot be null. (Parameter 'rootDir')");
+        }
+
+        [TestMethod]
+        public void FileSystemStateConstructorNoOptions()
+        {
+            Should.Throw(() =>
+            {
+                new FileSystemState("", options:null);
+            }, typeof(ArgumentNullException))
+                .Message.ShouldBe("Value cannot be null. (Parameter 'options')");
         }
 
 

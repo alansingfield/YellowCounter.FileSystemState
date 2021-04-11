@@ -1,8 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-// From https://github.com/dotnet/corefxlab/blob/master/src/System.IO.FileSystem.Watcher.Polling/System/IO/FileChange.cs
-
-using System.IO;
+﻿using System.IO;
 
 namespace YellowCounter.FileSystemState
 {
