@@ -8,7 +8,7 @@ namespace YellowCounter.FileSystemState.Filter
 {
     public class DirectoryFilter : IDirectoryFilter
     {
-        private static bool ignoreCase;
+        protected static bool ignoreCase;
 
         static DirectoryFilter()
         {
@@ -16,9 +16,9 @@ namespace YellowCounter.FileSystemState.Filter
                 || RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
         }
 
-        public string Pattern { get; set; } = "*";
+        public virtual string Pattern { get; set; } = "*";
 
-        public bool ShouldInclude(ReadOnlySpan<char> directory)
+        public virtual bool ShouldInclude(ReadOnlySpan<char> directory)
         {
             if(this.Pattern == "*")
                 return true;

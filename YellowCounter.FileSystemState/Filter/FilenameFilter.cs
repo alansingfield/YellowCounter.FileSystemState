@@ -8,7 +8,7 @@ namespace YellowCounter.FileSystemState.Filter
 {
     public class FilenameFilter : IFilenameFilter
     {
-        private static bool ignoreCase;
+        protected static bool ignoreCase;
 
         static FilenameFilter()
         {
@@ -16,9 +16,9 @@ namespace YellowCounter.FileSystemState.Filter
                 || RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
         }
 
-        public string Pattern { get; set; } = "*";
+        public virtual string Pattern { get; set; } = "*";
 
-        public bool ShouldInclude(ReadOnlySpan<char> filename)
+        public virtual bool ShouldInclude(ReadOnlySpan<char> filename)
         {
             if(this.Pattern == "*")
                 return true;

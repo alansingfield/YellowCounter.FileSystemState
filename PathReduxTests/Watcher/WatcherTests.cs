@@ -28,7 +28,7 @@ namespace PathReduxTests.Watcher
                 File.WriteAllText(Path.Combine(dir, "blah.txt"), "Hello");
 
                 var watcher = new FileSystemState(dir, new FileSystemStateOptions().WithRecurseSubdirectories(true));
-                watcher.LoadState();
+                watcher.Attach();
 
                 var q = watcher.GetChanges();
                 q.Count.ShouldBe(0);
@@ -56,7 +56,7 @@ namespace PathReduxTests.Watcher
             string currentDir = @"C:\";
 
             FileSystemState watcher = new FileSystemState(currentDir, new FileSystemStateOptions().WithRecurseSubdirectories(true));
-            watcher.LoadState();
+            watcher.Attach();
 
             var q = watcher.GetChanges();
             q.Count.ShouldBe(0);

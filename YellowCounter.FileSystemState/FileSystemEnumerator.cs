@@ -8,7 +8,7 @@ using YellowCounter.FileSystemState.Options;
 
 namespace YellowCounter.FileSystemState
 {
-    internal class FileSystemChangeEnumerator : FileSystemEnumerator<object>, IFileSystemEnumerator
+    internal class FileSystemEnumerator : FileSystemEnumerator<object>, IFileSystemEnumerator
     {
         private IAcceptFileSystemEntry acceptFileSystemEntry;
 
@@ -20,7 +20,7 @@ namespace YellowCounter.FileSystemState
         /// <param name="rootDir"></param>
         /// <param name="options"></param>
         /// <param name="acceptFileSystemEntry"></param>
-        public FileSystemChangeEnumerator(
+        public FileSystemEnumerator(
             IRootDir rootDir,
             EnumerationOptions options,
             IAcceptFileSystemEntry acceptFileSystemEntry)

@@ -17,17 +17,17 @@ public partial class FileSystemStateUnitTests
         //Assert.NotNull(watcher.Options);
     }
 
-    [Fact]
-    public static void FileSystemWatcher_ctor_OptionalParams()
-    {
-        string currentDir = Directory.GetCurrentDirectory();
-        const string filter = "*.csv";
-        var watcher = new FileSystemState(currentDir, filter, new FileSystemStateOptions().WithRecurseSubdirectories());
+    //[Fact]
+    //public static void FileSystemWatcher_ctor_OptionalParams()
+    //{
+    //    string currentDir = Directory.GetCurrentDirectory();
+    //    const string filter = "*.csv";
+    //    var watcher = new FileSystemState(currentDir, filter, new FileSystemStateOptions().WithRecurseSubdirectories());
 
-        Assert.Equal(currentDir, watcher.RootDir);
-        //Assert.Equal(filter, watcher.Filter);
-        //Assert.True(watcher.Options.RecurseSubdirectories);
-    }
+    //    Assert.Equal(currentDir, watcher.RootDir);
+    //    //Assert.Equal(filter, watcher.Filter);
+    //    //Assert.True(watcher.Options.RecurseSubdirectories);
+    //}
 
     //[Fact]
     //public static void FileSystemWatcher_ctor_Null()
@@ -55,7 +55,7 @@ public partial class FileSystemStateUnitTests
         string fullName = Path.Combine(currentDir, fileName);
 
         FileSystemState watcher = new FileSystemState(currentDir);
-        watcher.LoadState();
+        watcher.Attach();
         using (FileStream file = File.Create(fullName)) { }
         var changes = watcher.GetChanges();
 
@@ -82,7 +82,7 @@ public partial class FileSystemStateUnitTests
 
         FileSystemState watcher = new FileSystemState(currentDir);
         using (FileStream file = File.Create(fullName)) { }
-        watcher.LoadState();
+        watcher.Attach();
         File.Delete(fullName);
         var changes = watcher.GetChanges();
 
@@ -109,7 +109,7 @@ public partial class FileSystemStateUnitTests
 
         FileSystemState watcher = new FileSystemState(currentDir);
         using (FileStream file = File.Create(fullName)) { }
-        watcher.LoadState();
+        watcher.Attach();
         File.AppendAllText(fullName, ".");
         var changes = watcher.GetChanges();
 
@@ -141,7 +141,7 @@ public partial class FileSystemStateUnitTests
         FileSystemState watcher = new FileSystemState(currentDir);
 
         using(FileStream file = File.Create(fullName)) { }
-        watcher.LoadState();
+        watcher.Attach();
 
         File.Move(fullName, Path.Combine(currentDir, newName));
 
@@ -177,7 +177,7 @@ public partial class FileSystemStateUnitTests
         Directory.CreateDirectory(subDir);
 
         using(FileStream file = File.Create(fullName)) { }
-        watcher.LoadState();
+        watcher.Attach();
 
         File.Move(fullName, Path.Combine(currentDir, newName));
 
@@ -208,7 +208,7 @@ public partial class FileSystemStateUnitTests
         string fullName = Path.Combine(currentDir, fileName);
 
         FileSystemState watcher = new FileSystemState(currentDir, filter: "*.csv");
-        watcher.LoadState();
+        watcher.Attach();
         using (FileStream file = File.Create(fullName)) { }
         var changes = watcher.GetChanges();
 
@@ -234,7 +234,7 @@ public partial class FileSystemStateUnitTests
         string fullName = Path.Combine(currentDir, fileName);
 
         FileSystemState watcher = new FileSystemState(currentDir, filter: "*.csv");
-        watcher.LoadState();
+        watcher.Attach();
         using (FileStream file = File.Create(fullName)) { }
         var changes = watcher.GetChanges();
 
@@ -257,7 +257,7 @@ public partial class FileSystemStateUnitTests
         string fullName = Path.Combine(subDirectory, fileName);
 
         FileSystemState watcher = new FileSystemState(currentDir, new FileSystemStateOptions().WithRecurseSubdirectories(false));
-        watcher.LoadState();
+        watcher.Attach();
         using (FileStream file = File.Create(fullName)) { }
         var changes = watcher.GetChanges();
 
@@ -280,7 +280,7 @@ public partial class FileSystemStateUnitTests
         string fullName = Path.Combine(subDirectory, fileName);
 
         FileSystemState watcher = new FileSystemState(currentDir, new FileSystemStateOptions().WithRecurseSubdirectories(true) );
-        watcher.LoadState();
+        watcher.Attach();
         using (FileStream file = File.Create(fullName)) { }
         var changes = watcher.GetChanges();
 

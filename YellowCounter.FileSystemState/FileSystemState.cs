@@ -11,13 +11,14 @@ namespace YellowCounter.FileSystemState
     /// <summary>
     /// This is the public entry point for the library.
     /// </summary>
-    public class FileSystemState
+    public class FileSystemState : IFileSystemState
     {
         // Static section, set up the container in the default configuration.
         private static IContainer s_globalContainer;
 
         static FileSystemState()
         {
+            // Set up the DryIoc container
             s_globalContainer = new Container();
             s_globalContainer.RegisterFileSystemState();
         }
@@ -25,20 +26,26 @@ namespace YellowCounter.FileSystemState
 
         internal IResolverContext Context { get; private set; }
 
-        private FileSystemStateInternal fssInternal;
-        private IRootDir root;
+        private readonly IFileSystemStateInternal fileSystemStateInternal;
+        private readonly IRootDir root;
 
-        public FileSystemState(string rootDir, string filter = "*")
+        /// <summary>
+        /// Initialises the folder watcher
+        /// </summary>
+        /// <param name="rootDir">Root directory</param>
+        /// <param name="filter">Filter pattern</param>
+        /// <param name="recursive">Examine subdirectories?</param>
+        public FileSystemState(string rootDir, string filter = "*", bool recursive = false)
             : this(rootDir, new FileSystemStateOptions()
-                  .WithFilter(filter))
-        {
-        }
+                  .WithFilter(filter)
+                  .WithRecurseSubdirectories(recursive))
+        { }
 
-        public FileSystemState(string rootDir, string filter, FileSystemStateOptions options)
-            : this(rootDir, options.WithFilter(filter))
-        {
-        }
-
+        /// <summary>
+        /// Initialises the folder watcher
+        /// </summary>
+        /// <param name="rootDir">Root directory</param>
+        /// <param name="options">Options for filtering, recursion, file attributes</param>
         public FileSystemState(string rootDir, FileSystemStateOptions options)
         {
             if(rootDir == null)
@@ -74,13 +81,23 @@ namespace YellowCounter.FileSystemState
             this.root.Folder = rootDir;
 
             // Now when we resolve we will get a scoped instance with these settings.
-            this.fssInternal = this.Context.Resolve<FileSystemStateInternal>();
+            this.fileSystemStateInternal = this.Context.Resolve<IFileSystemStateInternal>();
         }
 
+        /// <summary>
+        /// The root directory being watched
+        /// </summary>
         public string RootDir => this.root.Folder;
 
-        public void LoadState() => this.fssInternal.LoadState();
+        /// <summary>
+        /// Reads the initial state of the folder
+        /// </summary>
+        public void Attach() => this.fileSystemStateInternal.Attach();
 
-        public IList<FileChange> GetChanges() => this.fssInternal.GetChanges();
+        /// <summary>
+        /// Returns the file changes made since the last call to Attach() or GetChanges()
+        /// </summary>
+        /// <returns></returns>
+        public IList<FileChange> GetChanges() => this.fileSystemStateInternal.GetChanges();
     }
 }

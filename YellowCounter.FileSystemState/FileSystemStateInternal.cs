@@ -12,27 +12,28 @@ using YellowCounter.FileSystemState.Filter;
 
 namespace YellowCounter.FileSystemState
 {
-    internal class FileSystemStateInternal
+    internal class FileSystemStateInternal : IFileSystemStateInternal
     {
         private readonly IRootDir rootDir;
         private readonly Func<IFileSystemEnumerator> newFileSystemEnumerator;
         private readonly IPathStorage pathStorage;
-        private readonly IFileStateStorage pathToFileStateHashtable;
+        private readonly IFileStateStorage fileStateStorage;
+
+        private bool attached;
 
         public FileSystemStateInternal(
             IRootDir rootDir,
             Func<IFileSystemEnumerator> newFileSystemEnumerator,
             IPathStorage pathStorage,
-            IFileStateStorage pathToFileStateHashtable,
-            IAcceptFileSystemEntry acceptFileSystemEntry)
+            IFileStateStorage fileStateStorage)
         {
             this.rootDir = rootDir;
             this.newFileSystemEnumerator = newFileSystemEnumerator;
             this.pathStorage = pathStorage;
-            this.pathToFileStateHashtable = pathToFileStateHashtable;
+            this.fileStateStorage = fileStateStorage;
         }
 
-        public void LoadState()
+        public void Attach()
         {
             if(!Directory.Exists(rootDir.Folder))
                 throw new DirectoryNotFoundException();
@@ -41,12 +42,17 @@ namespace YellowCounter.FileSystemState
             // every file as a change.
             gatherChanges();
             acceptChanges();
+
+            this.attached = true;
         }
 
 
         // This function walks all watched files, collects changes, and updates state
         public IList<FileChange> GetChanges()
         {
+            if(!this.attached)
+                throw new Exception("Call Attach() first");
+
             // Get the raw file changes, either create, file change or removal.
             var (creates, changes, removals) = getFileChanges();
 
@@ -62,15 +68,17 @@ namespace YellowCounter.FileSystemState
 
         private void gatherChanges()
         {
+            // We have to construct a new instance of the FileSystemEnumerator each time
+            // we do a scan.
             using(var enumerator = newFileSystemEnumerator())
             {
-                // The FileSystemEnumerator doesn't act like a normal enumerator. The
-                // Reset() method is not supported. Each item is presented as a ref
-                // FileSystemEntry to the TransformEntry method. The result of that is
-                // then available on Current. We can simply look at the FileSystemEntry
-                // at TransformEntry time and ignore Current completely.
+                // The FileSystemEnumerator doesn't act like a normal enumerator.
+                // Each item is presented as a ref FileSystemEntry to the TransformEntry
+                // method. The result of that is then available on Current. We can simply
+                // look at the FileSystemEntry at TransformEntry time and ignore Current
+                // completely.
                 //
-                // Enumerating causes TransformEntry() to be called repeatedly
+                // Enumerating causes AcceptFileSystemEntry.TransformEntry() to be called repeatedly
                 while(enumerator.MoveNext()) { };
             }
         }
@@ -78,7 +86,7 @@ namespace YellowCounter.FileSystemState
         private void acceptChanges()
         {
             // Clear out the files that have been removed or renamed from our state.
-            pathToFileStateHashtable.Sweep();
+            fileStateStorage.Sweep();
         }
 
         private List<FileChange> convertToFileChanges(
@@ -141,7 +149,7 @@ namespace YellowCounter.FileSystemState
 
             gatherChanges();
 
-            foreach(ref readonly var x in pathToFileStateHashtable)
+            foreach(ref readonly var x in fileStateStorage)
             {
                 if(x.Flags.HasFlag(FileStateFlags.Seen))
                 {
