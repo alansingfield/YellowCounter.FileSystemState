@@ -27,13 +27,17 @@ namespace YellowCounter.FileSystemState
             container.Register<IFileStateStorage, FileStateStorage>(Reuse.Scoped);
             container.Register<IPathStorage, PathStorage>(Reuse.Scoped);
 
-            // We want a new instance of this one each time.
-            container.Register<IFileSystemEnumerator, FileSystemEnumerator>(
-                Reuse.Transient,
-                setup: Setup.With(allowDisposableTransient: true));
+            container.RegisterFileSystemEnumerator();
 
             container.Register<IFileSystemStateInternal, FileSystemStateInternal>(Reuse.Scoped);
         }
 
+        public static void RegisterFileSystemEnumerator(this IContainer container)
+        {
+            // We want a new instance of this one each time.
+            container.Register<IFileSystemEnumerator, FileSystemEnumerator>(
+                Reuse.Transient,
+                setup: Setup.With(allowDisposableTransient: true));
+        }
     }
 }

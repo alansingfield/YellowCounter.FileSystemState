@@ -13,7 +13,7 @@
     <PackageReference Include="coverlet.collector" Version="1.0.1" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
     <PackageReference Include="Shouldly" Version="3.0.2" />
-    <PackageReference Include="UnitTestCoder.Shouldly" Version="3.0.0" />
+    <PackageReference Include="UnitTestCoder.Shouldly" Version="3.0.0-CI-20210411-113913" />
   </ItemGroup>
 
   <ItemGroup>

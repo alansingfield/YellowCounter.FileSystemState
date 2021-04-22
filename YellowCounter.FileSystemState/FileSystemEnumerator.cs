@@ -38,12 +38,12 @@ namespace YellowCounter.FileSystemState
 
         protected override bool ShouldIncludeEntry(ref FileSystemEntry entry)
         {
-            return acceptFileSystemEntry.ShouldIncludeEntry(ref entry);
+            return acceptFileSystemEntry.ShouldIncludeEntry(in entry);
         }
 
         protected override bool ShouldRecurseIntoEntry(ref FileSystemEntry entry)
         {
-            return acceptFileSystemEntry.ShouldRecurseIntoEntry(ref entry);
+            return acceptFileSystemEntry.ShouldRecurseIntoEntry(in entry);
         }
 
         object IFileSystemEnumerator.TransformEntry(ref FileSystemEntry entry) => this.TransformEntry(ref entry);

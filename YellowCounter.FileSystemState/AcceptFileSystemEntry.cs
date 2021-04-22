@@ -27,7 +27,7 @@ namespace YellowCounter.FileSystemState
             fileStateStorage.Mark(in fileSystemEntry);
         }
 
-        public bool ShouldIncludeEntry(ref FileSystemEntry entry)
+        public bool ShouldIncludeEntry(in FileSystemEntry entry)
         {
             if(entry.IsDirectory)
                 return false;
@@ -35,7 +35,7 @@ namespace YellowCounter.FileSystemState
             return filenameFilter.ShouldInclude(entry.FileName);
         }
 
-        public bool ShouldRecurseIntoEntry(ref FileSystemEntry entry)
+        public bool ShouldRecurseIntoEntry(in FileSystemEntry entry)
         {
             return directoryFilter.ShouldInclude(entry.FileName);
         }
