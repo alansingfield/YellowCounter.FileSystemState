@@ -76,7 +76,8 @@ namespace FSSUnsafe2
                         if(value.Length >= MAX_LENGTH)
                             throw new Exception("Filename too long");
 
-                        FileNameLength = (uint)(value.Length / sizeof(char));
+                        // Length in BYTES
+                        FileNameLength = (uint)(value.Length * sizeof(char));
 
                         Span<char> target = new Span<char>(ptr, value.Length);
 
