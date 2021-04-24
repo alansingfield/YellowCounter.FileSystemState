@@ -42,6 +42,7 @@ namespace PathReduxTests.FileSystem
             {
                 rootDir.Folder.Returns(wf.Folder);
 
+                // Get a real FileSystemEnumerator here.
                 var fsEnum = container.Resolve<IFileSystemEnumerator>();
 
                 var tolerance = TimeSpan.FromSeconds(10);
@@ -253,37 +254,6 @@ namespace PathReduxTests.FileSystem
             }
         }
 
-        /// <summary>
-        /// We can't store ref structs in an array (since the references would go out-of-scope)
-        /// so we need to copy all the values to a less restrictive (but more memory-hungry) type
-        /// </summary>
-        private class FileSystemEntryCopy
-        {
-            public FileAttributes Attributes { get; set; }
-            public DateTimeOffset CreationTimeUtc { get; set; }
-            public String Directory { get; set; }
-            public String FileName { get; set; }
-            public bool IsDirectory { get; set; }
-            public bool IsHidden { get; set; }
-            public DateTimeOffset LastAccessTimeUtc { get; set; }
-            public DateTimeOffset LastWriteTimeUtc { get; set; }
-            public long Length { get; set; }
 
-            public static FileSystemEntryCopy Copy(in FileSystemEntry entry)
-            {
-                return new FileSystemEntryCopy()
-                {
-                    Attributes =        entry.Attributes,
-                    CreationTimeUtc =   entry.CreationTimeUtc,
-                    Directory =         entry.Directory.ToString(),
-                    FileName =          entry.FileName.ToString(),
-                    IsDirectory =       entry.IsDirectory,
-                    IsHidden =          entry.IsHidden,
-                    LastAccessTimeUtc = entry.LastAccessTimeUtc,
-                    LastWriteTimeUtc =  entry.LastWriteTimeUtc,
-                    Length =            entry.Length,
-                };
-            }
-        }
     }
 }

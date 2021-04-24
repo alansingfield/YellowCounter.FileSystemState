@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FSSUnsafe2\FSSUnsafe2.csproj" />
     <ProjectReference Include="..\YellowCounter.FileSystemState\YellowCounter.FileSystemState.csproj" />
   </ItemGroup>
 

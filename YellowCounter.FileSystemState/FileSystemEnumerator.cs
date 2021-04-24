@@ -45,11 +45,5 @@ namespace YellowCounter.FileSystemState
         {
             return acceptFileSystemEntry.ShouldRecurseIntoEntry(in entry);
         }
-
-        object IFileSystemEnumerator.TransformEntry(ref FileSystemEntry entry) => this.TransformEntry(ref entry);
-
-        bool IFileSystemEnumerator.ShouldIncludeEntry(ref FileSystemEntry entry) => this.ShouldIncludeEntry(ref entry);
-
-        bool IFileSystemEnumerator.ShouldRecurseIntoEntry(ref FileSystemEntry entry) => this.ShouldRecurseIntoEntry(ref entry);
     }
 }
